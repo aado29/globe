@@ -20,9 +20,9 @@
 
 		<script>
 
-			var container;
+			var container , def = 0;
 
-			var camera, group, scene, renderer;
+			var camera, globeGroup, nodeGroup, scene, renderer;
 
 			var mouseX = -200, mouseY = 200, windowHalfX = window.innerWidth / 2, windowHalfY = window.innerHeight / 2;
 
@@ -37,7 +37,7 @@
 
 			function updateInfo() {
 
-				var text = 'Drag to spin THREE';
+				var text = 'Drag to spin THREE ' + def;
 
 				info.innerHTML = text;
 
@@ -49,15 +49,14 @@
 				loader.load(
 					'globe.png',
 					function ( image ) {
-						var bgMaterial = new THREE.MeshBasicMaterial( {
-							map: image,
-							transparent: true,
-							opacity: 0.5,
-							color: 0xCCCCCC
-						} );
 						var bg = new THREE.Mesh( 
 							new THREE.PlaneGeometry(radius * 2.2, radius * 2.2),
-							bgMaterial
+							new THREE.MeshBasicMaterial( {
+								map: image,
+								transparent: true,
+								opacity: 0.5,
+								color: 0xCCCCCC
+							} )
 						);
 
 						scene.add(bg);
@@ -66,12 +65,13 @@
 
 			}
 
-			function addStuff() {
+			function drawGlobe() {
 
-				if ( window.group !== undefined ) {
-
-					scene.remove( group );
-
+				if ( window.globeGroup !== undefined ) {
+					scene.remove( globeGroup ); // Se remueve si el gupo existe
+				} else {
+					globeGroup = new THREE.Group();
+					scene.add( globeGroup );
 				}
 
 				geometry = new THREE.IcosahedronGeometry( radius, 1 );
@@ -82,19 +82,50 @@
 				var scaleFactor = 160 / geometry.boundingSphere.radius;
 				geometry.scale( scaleFactor, scaleFactor, scaleFactor );
 
-				var originalGeometry = geometry.clone();
-				originalGeometry.computeFaceNormals();
-				originalGeometry.computeVertexNormals( true );
-
 				// in case of duplicated vertices
 				geometry.mergeVertices();
 				geometry.computeFaceNormals();
 				geometry.computeVertexNormals( true );
 
-				updateInfo();
+				var mesh = new THREE.Mesh(
+					geometry
+					, new THREE.MeshBasicMaterial( { 
+						color: 0xfefefe,
+						wireframe: true,
+						wireframeLinewidth: 2,
+						opacity: 0.5,
+						map: createGlobeTexture()
+					} ) );
+				globeGroup.add( mesh );
 
-				group = new THREE.Group();
-				scene.add( group );
+				var fvNames = [ 'a', 'b', 'c' ];
+
+				for( var f = 0, fl = mesh.geometry.faces.length; f < fl; f ++ ) {
+					var face = mesh.geometry.faces[ f ];
+					if( face.vertexNormals === undefined ) {
+						continue;
+					}
+					for( var v = 0, vl = face.vertexNormals.length; v < vl; v ++ ) {
+						var coor = mesh.geometry.vertices[ face[ fvNames[ v ] ] ];
+
+						var particle = new THREE.Mesh( 
+							new THREE.SphereGeometry( 0.5, 32, 32 ),
+							new THREE.MeshBasicMaterial( {
+								opacity: 1, 
+								map: createGlobeTexture(),
+								transparent: true
+							} ) 
+						);
+						particle.position.set( coor.x, coor.y, coor.z);
+						particle.scale.set( 12, 12, 12 );
+						// mesh.add( particle );
+						globeGroup.add( particle );
+					}
+				}
+
+			}
+
+			function createGlobeTexture() {
 
 				var canvas, size = 256;
 
@@ -117,47 +148,114 @@
 				var texture = new THREE.Texture( canvas );
 				texture.needsUpdate = true;
 
-				var mesh = new THREE.Mesh(
-					geometry
-					, new THREE.MeshBasicMaterial( { 
-						color: 0xfefefe,
-						wireframe: true,
-						wireframeLinewidth: 2,
-						opacity: 0.5,
-						map: texture
-					} ) );
-				group.add( mesh );
+				return texture;
 
-				var fvNames = [ 'a', 'b', 'c', 'd' ];
+			}
 
-				for( var f = 0, fl = mesh.geometry.faces.length; f < fl; f ++ ) {
-					var face = mesh.geometry.faces[ f ];
-					if( face.vertexNormals === undefined ) {
-						continue;
-					}
-					for( var v = 0, vl = face.vertexNormals.length; v < vl; v ++ ) {
-						var coor = mesh.geometry.vertices[ face[ fvNames[ v ] ] ];
+			function addStuff() {
 
-						var texture = new THREE.Texture( canvas );
-						texture.needsUpdate = true; // important!
-
-						var particle = new THREE.Mesh( 
-							new THREE.SphereGeometry( 0.5, 32, 32 )
-							, new THREE.MeshBasicMaterial( { opacity: 1, map: texture, transparent: true} ) 
-						);
-						particle.position.set( coor.x, coor.y, coor.z);
-						particle.scale.set( 12, 12, 12 );
-						mesh.add( particle );
-					}
-				}
-
+				drawGlobe();
 				addBackground();
+				drawLandscape();
 
+			}
+
+			function createItemList(pos, text, group, listType) {
+				dim = {w: 120, h: 40}
+
+				var bitmap = document.createElement('canvas');
+				var g = bitmap.getContext('2d');
+				bitmap.width = dim.w;
+				bitmap.height = dim.h;
+				g.font = 'Bold 20px Arial';
+
+				g.fillStyle = 'white';
+				g.fillText(text, 0, 20);
+				g.strokeStyle = 'black';
+				g.strokeText(text, 0, 20);
+				var texture = new THREE.Texture(bitmap) 
+				var bg = new THREE.Mesh( 
+					new THREE.PlaneGeometry(dim.w, dim.h),
+					new THREE.MeshBasicMaterial( {
+						map: texture,
+						transparent: true,
+						opacity: 0.5,
+						color: 0xCCCCCC
+					} )
+				);
+
+				if (listType == 'right')
+					bg.position.set(pos.x + (dim.w / 2), pos.y, pos.z - 1);
+				else
+					bg.position.set(pos.x - (dim.w / 2), pos.y, pos.z - 1);
+
+				group.add(bg);
+
+				console.log(bg.position);
 			}
 
 			function drawLandscape() {
 
-				
+				if ( window.nodeGroup !== undefined ) {
+					scene.remove( nodeGroup ); // Se remueve si el gupo existe
+				} else {
+					nodeGroup = new THREE.Group();
+					scene.add( nodeGroup );
+				}
+
+				drawParticle(radius, radius, 1, 'right');
+				drawParticle(radius + 40, radius - 130, 1, 'right');
+				drawParticle(radius + 110, radius - 200, 1, 'right');
+				drawParticle(radius, -radius, 1, 'right');
+
+
+				drawParticle(-radius, radius, 1, 'left');
+				drawParticle(-radius - 90, radius - 130, 1, 'left');
+				drawParticle(-radius - 50, radius - 220, 1, 'left');
+				drawParticle(-radius, -radius, 1, 'left');
+
+				var material = new THREE.LineBasicMaterial({
+					color: 0xCCCCCC,
+					linewidth: 2
+				});
+
+				var right = new THREE.Geometry();
+				right.vertices.push(
+					new THREE.Vector3(radius, radius, 1),
+					new THREE.Vector3(radius + 40, radius - 130, 1),
+					new THREE.Vector3(radius + 110, radius - 200, 1),
+					new THREE.Vector3(radius, -radius, 1)
+				);
+
+				var left = new THREE.Geometry();
+				left.vertices.push(
+					new THREE.Vector3(-radius, radius, 1),
+					new THREE.Vector3(-radius - 90, radius - 130, 1),
+					new THREE.Vector3(-radius - 50, radius - 220, 1),
+					new THREE.Vector3(-radius, -radius, 1)
+				);
+
+				var line = new THREE.Line( right, material );
+				nodeGroup.add( line );
+				var line = new THREE.Line( left, material );
+				nodeGroup.add( line );
+
+			}
+
+			function drawParticle(x, y, z, group) {
+
+				var geometry = new THREE.CircleGeometry( 0.8, 32 );
+				var material = new THREE.MeshBasicMaterial( {color: 0xCCCCCC} );
+				var particle = new THREE.Mesh( geometry, material );
+				particle.position.x = x;
+				particle.position.y = y;
+				particle.position.z = z;
+				particle.scale.set( 12, 12, 12 );
+				// mesh.add( particle );
+
+				nodeGroup.add( particle );
+				createItemList({x: x, y: y, z: z}, 'Item', nodeGroup, group);
+				console.log(particle.position);
 
 			}
 
@@ -209,7 +307,7 @@
 				mouseX = ( e.clientX - windowHalfX );
 				mouseY = ( e.clientY - windowHalfY );
 
-				new TWEEN.Tween( group.rotation ).to( {
+				new TWEEN.Tween( globeGroup.rotation ).to( {
 					x: ( mouseX ) / 100,
 					y: ( mouseY ) / 100 
 				}, 2000 )
@@ -223,14 +321,17 @@
 
 				render();
 
+				updateInfo();
+				def++;
+
 			}
 
 			function render() {
 
 				TWEEN.update();
 
-				// group.rotation.x += ( mouseX - group.rotation.x ) * 0.9;
-				// group.rotation.y += ( mouseY - group.rotation.y ) * 0.9;
+				// globeGroup.rotation.x += ( mouseX - globeGroup.rotation.x ) * 0.9;
+				// globeGroup.rotation.y += ( mouseY - globeGroup.rotation.y ) * 0.9;
 
 				camera.lookAt( scene.position );
 
