@@ -22,9 +22,11 @@
 
 			var container , def = 0;
 
-			var camera, globeGroup, nodeGroup, scene, renderer;
+			var camera, globeGroup, nodeGroup, infoGroup, scene, renderer;
 
 			var mouseX = -200, mouseY = 200, windowHalfX = window.innerWidth / 2, windowHalfY = window.innerHeight / 2;
+
+			var particles = [];
 
 			var info;
 
@@ -34,6 +36,73 @@
 
 			init();
 			animate();
+
+			function handleClickParticle(event) {
+
+				var raycaster = new THREE.Raycaster(),
+					mouse = new THREE.Vector2(),
+					sphereRadius = 105;
+
+				mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+				mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+				raycaster.setFromCamera(mouse, camera);
+				var intersects = raycaster.intersectObjects(particles);
+
+				if (intersects.length > 0){
+
+					if ( window.infoGroup !== undefined ) {
+						scene.remove( infoGroup ); // Se remueve si el gupo existe
+					}
+
+					infoGroup = new THREE.Group();
+					scene.add( infoGroup );
+
+					// Use the intersected objects: 
+					// intersects[0] represents the foremost object that was hovered
+					var message = intersects[0].object.name;
+
+					var canvas = document.createElement('canvas');
+					canvas.width = sphereRadius * 2;
+					canvas.height = sphereRadius * 2;
+
+					var ctx = canvas.getContext('2d');
+
+					ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
+		            ctx.fillRect(0,0,canvas.width,canvas.height);
+
+					ctx.font = "Bold 12px Arial";
+					ctx.fillStyle = "#000000";
+					ctx.fillText(message, canvas.width/4, canvas.width/4);
+					ctx.textAlign = "start";
+
+					console.log(ctx);
+
+					// canvas contents will be used for a texture
+					var txtr = new THREE.Texture(canvas);
+					txtr.needsUpdate = true;
+
+					var geometry = new THREE.CircleGeometry( sphereRadius, 50 );
+					var material = new THREE.MeshBasicMaterial( {map: txtr, side:THREE.DoubleSide } );
+					material.transparent = true;
+					var overlay = new THREE.Mesh( geometry, material );
+					overlay.position.x = 0;
+					overlay.position.y = 0;
+					overlay.position.z = 200;
+
+					infoGroup.add( overlay );
+
+					// 
+
+
+				} else {
+
+					if ( window.infoGroup !== undefined ) {
+						scene.remove( infoGroup ); // Se remueve si el gupo existe
+					}
+
+				}
+
+			}
 
 			function updateInfo() {
 
@@ -62,6 +131,33 @@
 						scene.add(bg);
 					}
 				);
+
+			}
+
+			function createGlobeTexture() {
+
+				var canvas, size = 256;
+
+				// create canvas
+				canvas = document.createElement( 'canvas' );
+				canvas.width = size;
+				canvas.height = size;
+
+				// get context
+				var context = canvas.getContext( '2d' );
+
+				// draw gradient
+				context.rect( 0, 0, size, size );
+				var gradient = context.createLinearGradient( 0, 0, size, size );
+				gradient.addColorStop(0.2, '#1f9ae5'); // blue light 
+				gradient.addColorStop(1, '#1ec480'); // green
+				context.fillStyle = gradient;
+				context.fill();
+
+				var texture = new THREE.Texture( canvas );
+				texture.needsUpdate = true;
+
+				return texture;
 
 			}
 
@@ -125,33 +221,6 @@
 
 			}
 
-			function createGlobeTexture() {
-
-				var canvas, size = 256;
-
-				// create canvas
-				canvas = document.createElement( 'canvas' );
-				canvas.width = size;
-				canvas.height = size;
-
-				// get context
-				var context = canvas.getContext( '2d' );
-
-				// draw gradient
-				context.rect( 0, 0, size, size );
-				var gradient = context.createLinearGradient( 0, 0, size, size );
-				gradient.addColorStop(0.2, '#1f9ae5'); // blue light 
-				gradient.addColorStop(1, '#1ec480'); // green
-				context.fillStyle = gradient;
-				context.fill();
-
-				var texture = new THREE.Texture( canvas );
-				texture.needsUpdate = true;
-
-				return texture;
-
-			}
-
 			function addStuff() {
 
 				drawGlobe();
@@ -160,38 +229,52 @@
 
 			}
 
-			function createItemList(pos, text, group, listType) {
-				dim = {w: 120, h: 40}
+			function makeTextSprite( message, pos, listType ) {
 
-				var bitmap = document.createElement('canvas');
-				var g = bitmap.getContext('2d');
-				bitmap.width = dim.w;
-				bitmap.height = dim.h;
-				g.font = 'Bold 20px Arial';
+				var fontS = 20,
+					w = 256,
+					h = 128;
 
-				g.fillStyle = 'white';
-				g.fillText(text, 0, 20);
-				g.strokeStyle = 'black';
-				g.strokeText(text, 0, 20);
-				var texture = new THREE.Texture(bitmap) 
-				var bg = new THREE.Mesh( 
-					new THREE.PlaneGeometry(dim.w, dim.h),
-					new THREE.MeshBasicMaterial( {
-						map: texture,
-						transparent: true,
-						opacity: 0.5,
-						color: 0xCCCCCC
-					} )
-				);
+				var canvas = document.createElement('canvas');
+				canvas.width = w;
+				canvas.height = h;
+
+				var ctx = canvas.getContext('2d');
+				ctx.font = "Bold 20px Arial";
+				ctx.fillStyle = "#000000";
 
 				if (listType == 'right')
-					bg.position.set(pos.x + (dim.w / 2), pos.y, pos.z - 1);
+					ctx.fillText(message, canvas.width/2, 20);
 				else
-					bg.position.set(pos.x - (dim.w / 2), pos.y, pos.z - 1);
+					ctx.fillText(message, canvas.width/2, 20);
 
+				ctx.textAlign="center"; 
+				console.log(canvas.width/2);
+
+				// canvas contents will be used for a texture
+				var txtr = new THREE.Texture(canvas);
+				txtr.needsUpdate = true;
+
+				var material = new THREE.MeshBasicMaterial( {map: txtr, side:THREE.DoubleSide } );
+				material.transparent = true;
+
+				var sprite = new THREE.Mesh(
+					new THREE.PlaneGeometry(canvas.width, canvas.height),
+					material
+				);
+
+				sprite.name = 'message';
+				sprite.position.set(pos.x, pos.y, 1);
+
+				return sprite;
+
+			}
+
+			function createItemList(pos, text, group, listType) {
+
+				var bg = makeTextSprite(text, pos, listType);
 				group.add(bg);
 
-				console.log(bg.position);
 			}
 
 			function drawLandscape() {
@@ -203,16 +286,16 @@
 					scene.add( nodeGroup );
 				}
 
-				drawParticle(radius, radius, 1, 'right');
-				drawParticle(radius + 40, radius - 130, 1, 'right');
-				drawParticle(radius + 110, radius - 200, 1, 'right');
-				drawParticle(radius, -radius, 1, 'right');
+				drawParticle('Item1', 'lorem ipsum dolor', radius, radius, 1, 'right');
+				drawParticle('Item2', 'lorem ipsum dolor', radius + 40, radius - 130, 1, 'right');
+				drawParticle('Item3', 'lorem ipsum dolor', radius + 110, radius - 200, 1, 'right');
+				drawParticle('Item4', 'lorem ipsum dolor', radius, -radius, 1, 'right');
 
 
-				drawParticle(-radius, radius, 1, 'left');
-				drawParticle(-radius - 90, radius - 130, 1, 'left');
-				drawParticle(-radius - 50, radius - 220, 1, 'left');
-				drawParticle(-radius, -radius, 1, 'left');
+				drawParticle('Item5', 'lorem ipsum dolor', -radius, radius, 1, 'left');
+				drawParticle('Item6', 'lorem ipsum dolor', -radius - 90, radius - 130, 1, 'left');
+				drawParticle('Item7', 'lorem ipsum dolor', -radius - 50, radius - 220, 1, 'left');
+				drawParticle('Item8', 'lorem ipsum dolor', -radius, -radius, 1, 'left');
 
 				var material = new THREE.LineBasicMaterial({
 					color: 0xCCCCCC,
@@ -242,7 +325,7 @@
 
 			}
 
-			function drawParticle(x, y, z, group) {
+			function drawParticle(name, desc, x, y, z, group) {
 
 				var geometry = new THREE.CircleGeometry( 0.8, 32 );
 				var material = new THREE.MeshBasicMaterial( {color: 0xCCCCCC} );
@@ -251,11 +334,12 @@
 				particle.position.y = y;
 				particle.position.z = z;
 				particle.scale.set( 12, 12, 12 );
+				particle.name = desc
 				// mesh.add( particle );
 
+				particles.push( particle );
 				nodeGroup.add( particle );
-				createItemList({x: x, y: y, z: z}, 'Item', nodeGroup, group);
-				console.log(particle.position);
+				createItemList({x: x, y: y, z: z}, name, nodeGroup, group);
 
 			}
 
@@ -287,6 +371,7 @@
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
+				renderer.domElement.addEventListener('click', handleClickParticle, false);
 
 				window.addEventListener( 'click', onWindowClick, false );
 				window.addEventListener( 'resize', onWindowResize, false );
@@ -308,8 +393,8 @@
 				mouseY = ( e.clientY - windowHalfY );
 
 				new TWEEN.Tween( globeGroup.rotation ).to( {
-					x: ( mouseX ) / 100,
-					y: ( mouseY ) / 100 
+					x: ( mouseY ) / 100,
+					y: - ( mouseX ) / 100 
 				}, 2000 )
 				.easing( TWEEN.Easing.Elastic.Out).start();
 
