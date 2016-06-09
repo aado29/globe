@@ -30,7 +30,11 @@
 
 			var info;
 
+			var listR, listL;
+
 			var geometry, radius = 200;
+
+			var aux = true;
 
 			// start scene
 
@@ -68,14 +72,12 @@
 					var ctx = canvas.getContext('2d');
 
 					ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
-		            ctx.fillRect(0,0,canvas.width,canvas.height);
+					ctx.fillRect(0,0,canvas.width,canvas.height);
 
 					ctx.font = "Bold 12px Arial";
 					ctx.fillStyle = "#000000";
 					ctx.fillText(message, canvas.width/4, canvas.width/4);
 					ctx.textAlign = "start";
-
-					console.log(ctx);
 
 					// canvas contents will be used for a texture
 					var txtr = new THREE.Texture(canvas);
@@ -90,8 +92,6 @@
 					overlay.position.z = 200;
 
 					infoGroup.add( overlay );
-
-					// 
 
 
 				} else {
@@ -165,10 +165,10 @@
 
 				if ( window.globeGroup !== undefined ) {
 					scene.remove( globeGroup ); // Se remueve si el gupo existe
-				} else {
-					globeGroup = new THREE.Group();
-					scene.add( globeGroup );
 				}
+
+				globeGroup = new THREE.Group();
+				scene.add( globeGroup );
 
 				geometry = new THREE.IcosahedronGeometry( radius, 1 );
 
@@ -229,27 +229,37 @@
 
 			}
 
-			function makeTextSprite( message, pos, listType ) {
+			function makeTextSprite( message, pos, align ) {
 
 				var fontS = 20,
 					w = 256,
-					h = 128;
+					h = 128,
+					margin = 20,
+					x, y;
 
 				var canvas = document.createElement('canvas');
 				canvas.width = w;
 				canvas.height = h;
 
 				var ctx = canvas.getContext('2d');
-				ctx.font = "Bold 20px Arial";
+
+				// fill the canvas
+				// ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
+				// ctx.fillRect(0,0,w,h);
+
 				ctx.fillStyle = "#000000";
+				ctx.font = "Bold 20px Arial";
 
-				if (listType == 'right')
-					ctx.fillText(message, canvas.width/2, 20);
-				else
-					ctx.fillText(message, canvas.width/2, 20);
+				if (align == 'right') {
+					ctx.textAlign = "left";
+					x = pos.x + w / 2;
+					ctx.fillText(message, 0 + margin, 128/2 + fontS / 2);
+				} else {
+					ctx.textAlign = "right";
+					x = pos.x - w / 2;
+					ctx.fillText(message, w - margin, 128/2 + fontS / 2);
+				}
 
-				ctx.textAlign="center"; 
-				console.log(canvas.width/2);
 
 				// canvas contents will be used for a texture
 				var txtr = new THREE.Texture(canvas);
@@ -264,38 +274,20 @@
 				);
 
 				sprite.name = 'message';
-				sprite.position.set(pos.x, pos.y, 1);
+				sprite.position.set(x , pos.y, 1);
 
 				return sprite;
 
 			}
 
-			function createItemList(pos, text, group, listType) {
+			function createItemList(pos, text, align, group) {
 
-				var bg = makeTextSprite(text, pos, listType);
+				var bg = makeTextSprite(text, pos, align);
 				group.add(bg);
 
 			}
 
 			function drawLandscape() {
-
-				if ( window.nodeGroup !== undefined ) {
-					scene.remove( nodeGroup ); // Se remueve si el gupo existe
-				} else {
-					nodeGroup = new THREE.Group();
-					scene.add( nodeGroup );
-				}
-
-				drawParticle('Item1', 'lorem ipsum dolor', radius, radius, 1, 'right');
-				drawParticle('Item2', 'lorem ipsum dolor', radius + 40, radius - 130, 1, 'right');
-				drawParticle('Item3', 'lorem ipsum dolor', radius + 110, radius - 200, 1, 'right');
-				drawParticle('Item4', 'lorem ipsum dolor', radius, -radius, 1, 'right');
-
-
-				drawParticle('Item5', 'lorem ipsum dolor', -radius, radius, 1, 'left');
-				drawParticle('Item6', 'lorem ipsum dolor', -radius - 90, radius - 130, 1, 'left');
-				drawParticle('Item7', 'lorem ipsum dolor', -radius - 50, radius - 220, 1, 'left');
-				drawParticle('Item8', 'lorem ipsum dolor', -radius, -radius, 1, 'left');
 
 				var material = new THREE.LineBasicMaterial({
 					color: 0xCCCCCC,
@@ -312,35 +304,36 @@
 
 				var left = new THREE.Geometry();
 				left.vertices.push(
-					new THREE.Vector3(-radius, radius, 1),
+					new THREE.Vector3(-radius , radius, 1),
 					new THREE.Vector3(-radius - 90, radius - 130, 1),
 					new THREE.Vector3(-radius - 50, radius - 220, 1),
 					new THREE.Vector3(-radius, -radius, 1)
 				);
 
-				var line = new THREE.Line( right, material );
-				nodeGroup.add( line );
-				var line = new THREE.Line( left, material );
-				nodeGroup.add( line );
+				listR = new THREE.Line( right, material );
+				scene.add( listR );
+				listL = new THREE.Line( left, material );
+				scene.add( listL );
 
 			}
 
-			function drawParticle(name, desc, x, y, z, group) {
+			function drawParticle(pos, name, desc, align, group) {
 
 				var geometry = new THREE.CircleGeometry( 0.8, 32 );
 				var material = new THREE.MeshBasicMaterial( {color: 0xCCCCCC} );
 				var particle = new THREE.Mesh( geometry, material );
-				particle.position.x = x;
-				particle.position.y = y;
-				particle.position.z = z;
+				particle.position.x = pos.x;
+				particle.position.y = pos.y;
+				particle.position.z = pos.z;
 				particle.scale.set( 12, 12, 12 );
 				particle.name = desc
 				// mesh.add( particle );
 
 				particles.push( particle );
-				nodeGroup.add( particle );
-				createItemList({x: x, y: y, z: z}, name, nodeGroup, group);
+				group.add(particle);
+				createItemList({x: pos.x, y: pos.y, z: pos.z}, name, align, group);
 
+				return particle;
 			}
 
 			function init() {
@@ -400,6 +393,47 @@
 
 			}
 
+			function animateList() {
+
+				if ( window.nodeGroup !== undefined ) {
+					scene.remove( nodeGroup ); // Se remueve si el gupo existe
+				}
+
+				nodeGroup = new THREE.Group();
+				scene.add( nodeGroup );
+
+				listL.geometry.verticesNeedUpdate = true;
+				var verticesL = listL.geometry.vertices;
+
+				for (var i = 0; i < verticesL.length; i++) {
+					verticesL[i].setX( -radius + ( def ) + i*30 );
+					verticesL[i].setY( radius + ( def ) + i*30 );
+					drawParticle(
+						{x:verticesL[i].x, y:verticesL[i].y, z:1},
+						'Item '+i,
+						'Descripcion',
+						'left',
+						nodeGroup
+					);
+				}
+
+				listR.geometry.verticesNeedUpdate = true;
+				var verticesR = listR.geometry.vertices;
+
+				for (var i = 0; i < verticesR.length; i++) {
+					verticesR[i].setX( radius + ( def ) + i*30 );
+					verticesR[i].setY( radius + ( def ) + i*30 );
+					drawParticle(
+						{x:verticesR[i].x, y:verticesR[i].y, z:1},
+						'Item '+i,
+						'Descripcion',
+						'right',
+						nodeGroup
+					);
+				}
+
+			}
+
 			function animate() {
 
 				requestAnimationFrame( animate );
@@ -407,7 +441,19 @@
 				render();
 
 				updateInfo();
-				def++;
+				if (aux) {
+					if (def > 20) {
+						aux = false;
+					}
+					def = def + 0.5;
+				} else {
+					if (def < -20) {
+						aux = true;
+					}
+					def = def - 0.5;
+				}
+				animateList();
+				
 
 			}
 
@@ -417,6 +463,8 @@
 
 				// globeGroup.rotation.x += ( mouseX - globeGroup.rotation.x ) * 0.9;
 				// globeGroup.rotation.y += ( mouseY - globeGroup.rotation.y ) * 0.9;
+
+				console.log()
 
 				camera.lookAt( scene.position );
 
