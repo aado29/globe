@@ -17,6 +17,7 @@
 
 		<script src="three.min.js"></script>
 		<script src="http://threejs.org/examples/js/libs/tween.min.js"></script>
+		<script src="http://gamestd.io/three-text2d/dist/three-text2d.js"></script>
 
 		<script>
 
@@ -25,8 +26,6 @@
 			var camera, globeGroup, nodeGroup, infoGroup, scene, renderer;
 
 			var mouseX = -200, mouseY = 200, windowHalfX = window.innerWidth / 2, windowHalfY = window.innerHeight / 2;
-
-			var particles = [];
 
 			var geometry, radius = 200;
 
@@ -49,8 +48,8 @@
 				{
 					x: -220,
 					y: 200,
-					dx: 0.3,
-					dy: 0.4,
+					dx: 0.13,
+					dy: 0.09,
 					maxWidth: -220 + 25,
 					minWidth: -220 - 25,
 					maxHeight: 200 + 25,
@@ -79,8 +78,8 @@
 				{
 					x: -280,
 					y: 70,
-					dx: 0.2,
-					dy: 0.4,
+					dx: 0.12,
+					dy: 0.094,
 					maxWidth: -280 + 23,
 					minWidth: -280 - 23,
 					maxHeight: 70 + 20,
@@ -94,8 +93,8 @@
 				{
 					x: -280,
 					y: -50,
-					dx: 0.2,
-					dy: 0.6,
+					dx: 0.09,
+					dy: 0.12,
 					maxWidth: -280 + 25,
 					minWidth: -280 - 25,
 					maxHeight: -50 + 28,
@@ -124,8 +123,8 @@
 				{
 					x: -260,
 					y: -200,
-					dx: 0.5,
-					dy: 0.2,
+					dx: 0.1,
+					dy: 0.14,
 					maxWidth: -260 + 25,
 					minWidth: -260 - 25,
 					maxHeight: -200 + 28,
@@ -142,8 +141,8 @@
 				{
 					x: 240,
 					y: 200,
-					dx: 0.5,
-					dy: 0.3,
+					dx: 0.09,
+					dy: 0.14,
 					maxWidth: 240 + 20,
 					minWidth: 240 - 20,
 					maxHeight: 200 + 20,
@@ -172,8 +171,8 @@
 				{
 					x: 250,
 					y: 80,
-					dx: 0.3,
-					dy: 0.4,
+					dx: 0.03,
+					dy: 0.04,
 					maxWidth: 250 + 20,
 					minWidth: 250 - 20,
 					maxHeight: 80 + 20,
@@ -187,8 +186,8 @@
 				{
 					x: 290,
 					y: -80,
-					dx: 0.4,
-					dy: 0.2,
+					dx: 0.13,
+					dy: 0.08,
 					maxWidth: 290 + 20,
 					minWidth: 290 - 20,
 					maxHeight: -80 + 20,
@@ -217,8 +216,8 @@
 				{
 					x: 250,
 					y: -200,
-					dx: 0.2,
-					dy: 0.3,
+					dx: 0.16,
+					dy: 0.09,
 					maxWidth: 250 + 20,
 					minWidth: 250 - 20,
 					maxHeight: -200 + 20,
@@ -248,6 +247,8 @@
 
 			var listR, listL;
 
+			var particleGroup = [];
+
 			// start scene
 
 			init();
@@ -262,56 +263,60 @@
 				mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 				mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 				raycaster.setFromCamera(mouse, camera);
-				var intersects = raycaster.intersectObjects(particles);
+				for (var i = 0; i < nodeGroup.children.length; i++) {
 
-				if (intersects.length > 0){
+					var intersects = raycaster.intersectObjects(particleGroup);
 
-					if ( window.infoGroup !== undefined ) {
-						scene.remove( infoGroup ); // Se remueve si el gupo existe
+					if (intersects.length > 0){
+
+						if ( window.infoGroup !== undefined ) {
+							scene.remove( infoGroup ); // Se remueve si el gupo existe
+						}
+
+						infoGroup = new THREE.Group();
+						scene.add( infoGroup );
+
+						// Use the intersected objects: 
+						// intersects[0] represents the foremost object that was hovered
+						var message = intersects[0].object.name;
+
+						var canvas = document.createElement('canvas');
+						canvas.width = sphereRadius * 2;
+						canvas.height = sphereRadius * 2;
+
+						var ctx = canvas.getContext('2d');
+
+						ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
+						ctx.fillRect(0,0,canvas.width,canvas.height);
+
+						ctx.font = "Bold 12px Arial";
+						ctx.fillStyle = "#000000";
+						ctx.textAlign = "center";
+						ctx.fillText(message, canvas.width/2, canvas.width/2);
+
+						// canvas contents will be used for a texture
+						var txtr = new THREE.Texture(canvas);
+						txtr.needsUpdate = true;
+
+						var geometry = new THREE.CircleGeometry( sphereRadius, 50 );
+						var material = new THREE.MeshBasicMaterial( {map: txtr, side:THREE.DoubleSide } );
+						material.transparent = true;
+						var overlay = new THREE.Mesh( geometry, material );
+						overlay.name = 'Overlay';
+						overlay.position.x = 0;
+						overlay.position.y = 0;
+						overlay.position.z = 200;
+
+						infoGroup.add( overlay );
+
+
+					} else {
+
+						if ( window.infoGroup !== undefined ) {
+							scene.remove( infoGroup ); // Se remueve si el gupo existe
+						}
+
 					}
-
-					infoGroup = new THREE.Group();
-					scene.add( infoGroup );
-
-					// Use the intersected objects: 
-					// intersects[0] represents the foremost object that was hovered
-					var message = intersects[0].object.name;
-
-					var canvas = document.createElement('canvas');
-					canvas.width = sphereRadius * 2;
-					canvas.height = sphereRadius * 2;
-
-					var ctx = canvas.getContext('2d');
-
-					ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
-					ctx.fillRect(0,0,canvas.width,canvas.height);
-
-					ctx.font = "Bold 12px Arial";
-					ctx.fillStyle = "#000000";
-					ctx.textAlign = "center";
-					ctx.fillText(message, canvas.width/2, canvas.width/2);
-
-					// canvas contents will be used for a texture
-					var txtr = new THREE.Texture(canvas);
-					txtr.needsUpdate = true;
-
-					var geometry = new THREE.CircleGeometry( sphereRadius, 50 );
-					var material = new THREE.MeshBasicMaterial( {map: txtr, side:THREE.DoubleSide } );
-					material.transparent = true;
-					var overlay = new THREE.Mesh( geometry, material );
-					overlay.position.x = 0;
-					overlay.position.y = 0;
-					overlay.position.z = 200;
-
-					infoGroup.add( overlay );
-
-
-				} else {
-
-					if ( window.infoGroup !== undefined ) {
-						scene.remove( infoGroup ); // Se remueve si el gupo existe
-					}
-
 				}
 
 			}
@@ -321,25 +326,26 @@
 				var raycaster = new THREE.Raycaster(),
 					mouse = new THREE.Vector2();
 
-				mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-				mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
-				raycaster.setFromCamera(mouse, camera);
-				var intersects = raycaster.intersectObjects(particles);
+				mouse.x = 2 * (event.clientX / window.innerWidth) - 1;
+				mouse.y = -2 * (event.clientY / window.innerHeight) + 1;
+				mouse.z = 1;
 
-				if (intersects.length > 0){
+				raycaster.setFromCamera(mouse, camera);
+				var intersects = raycaster.intersectObjects(particleGroup);
+
+				if (intersects.length > 0) {
 
 					window.document.body.style.cursor = 'pointer';
-					console.log(intersects[0]);
 
 				} else {
 
 					window.document.body.style.cursor = 'auto';
 
-				}
+					}
 
 			}
 
-			function addBackground() {
+			function drawBackground() {
 
 				var loader = new THREE.TextureLoader();
 				loader.load(
@@ -354,6 +360,7 @@
 								color: 0xCCCCCC
 							} )
 						);
+						bg.name = 'Background Image';
 
 						scene.add(bg);
 					}
@@ -419,6 +426,8 @@
 						opacity: 0.5,
 						map: createGlobeTexture()
 					} ) );
+
+				mesh.name = 'Globe 3D';
 				globeGroup.add( mesh );
 
 				var fvNames = [ 'a', 'b', 'c' ];
@@ -439,9 +448,10 @@
 								transparent: true
 							} ) 
 						);
+						particle.name = 'Globe particle ' + f;
 						particle.position.set( coor.x, coor.y, coor.z);
 						particle.scale.set( 12, 12, 12 );
-						// mesh.add( particle );
+						
 						globeGroup.add( particle );
 					}
 				}
@@ -451,83 +461,116 @@
 			function addStuff() {
 
 				drawGlobe();
-				addBackground();
-				drawLandscape();
+				drawBackground();
+				drawList();
 
 			}
 
-			function makeTextSprite( message, pos, align ) {
+			function createItemList(pos, text, desc, align, group, sizeParticle) {
 
-				var lineHeight = 20,
-					w = 256,
-					h = 128,
-					margin = 20;
+				var itemText = drawText(text, sizeParticle, align);
+				itemText.name = desc;
+				group.add(itemText);
+
+				return itemText;
+
+			}
+
+			function drawText( text, sizeParticle, align ) {
 
 				var canvas = document.createElement('canvas');
+				var ctx = canvas.getContext('2d');
+				var fontSize = 20;
+				var font = fontSize + "px Arial";
+
+				var maxWidth = 1;
+
+				var arrMessage = text.split('\n');
+
+				for (var i = 0; i < arrMessage.length; i++) {
+					ctx.font = font;
+					var txt = arrMessage[i];
+					var cw = ctx.measureText(txt).width;
+					maxWidth = ( cw > maxWidth) ? cw : maxWidth;
+				}
+
+				var margin = 20,
+					w = maxWidth + (fontSize * 4),
+					h = 128;
+
+				if(text.length < 1)
+					var w = 1, h = 1;
+				
 				canvas.width = w;
 				canvas.height = h;
-
-				var ctx = canvas.getContext('2d');
 
 				// fill the canvas
 				// ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
 				// ctx.fillRect(0,0,w,h);	
 
-				var arrMessage = message.split('\n');
+				var x,
+					y = h/2 + fontSize/2;
+
 				for (var i = 0; i < arrMessage.length; i++) {
-
-					ctx.fillStyle = "#444444";
-					ctx.font = "Bold 20px Arial";
+					ctx.font = font;
+					ctx.fillStyle = "#808080";
 					if (align == 'right') {
-						ctx.textAlign = "left";
-						if (arrMessage.length < 2)
-							ctx.fillText(arrMessage[i].toUpperCase(), 0 + margin, h/2 + lineHeight/2 );
-						else
-							ctx.fillText(arrMessage[i].toUpperCase(), 0 + margin, lineHeight * ( i + 1 ) + ( arrMessage.length * lineHeight ) );
+						ctx.textAlign = 'left';
+						x = 0 + fontSize;
 					} else {
-						ctx.textAlign = "right";
-						if (arrMessage.length < 2)
-							ctx.fillText(arrMessage[i].toUpperCase(), w - margin, h/2 + lineHeight/2 );
-						else
-							ctx.fillText(arrMessage[i].toUpperCase(), w - margin, ( lineHeight * ( i + 1 ) + ( arrMessage.length * lineHeight ) / 1 ) );
+						ctx.textAlign = 'right';
+						x = w - fontSize;
 					}
+					var txt = arrMessage[i].toUpperCase();
+					if (arrMessage.length < 2)
+						ctx.fillText(txt, x, y );
+					else
+						ctx.fillText(txt, x, fontSize * ( i + 1 ) + ( arrMessage.length * fontSize ) );
+
 				}
-
 				// canvas contents will be used for a texture
-				var txtr = new THREE.Texture(canvas);
-				txtr.needsUpdate = true;
-
-				var material = new THREE.MeshBasicMaterial( {map: txtr, side:THREE.DoubleSide } );
+				var texture = new THREE.Texture(canvas);
+				texture.needsUpdate = true;
+				var material = new THREE.MeshBasicMaterial( {map: texture, side:THREE.DoubleSide } );
 				material.transparent = true;
-
 				var sprite = new THREE.Mesh(
 					new THREE.PlaneGeometry(canvas.width, canvas.height),
 					material
 				);
-
-				sprite.name = 'message';
-				sprite.position.set(pos.x , pos.y, 1);
-
-				return sprite;
+				
+        		return sprite;
 
 			}
 
-			function createItemList(pos, text, align, group) {
+			function createParticleList(pos, desc, size, group) {
 
-				var bg = makeTextSprite(text, pos, align);
-				group.add(bg);
+				var particle = drawParticle(size);
+				particle.name = desc;
 
-				return bg;
+				group.add(particle);
+
+				return particle;
 
 			}
 
-			function drawLandscape() {
+			function drawParticle(size) {
+
+				var geometry = new THREE.CircleGeometry( size, 32 );
+				var material = new THREE.MeshBasicMaterial( {color: 0xCCCCCC} );
+				var particle = new THREE.Mesh( geometry, material );
+
+				return particle;
+
+			}
+
+			function drawList() {
 
 				if ( window.nodeGroup !== undefined ) {
 					scene.remove( nodeGroup ); // Se remueve si el gupo existe
 				}
 
 				nodeGroup = new THREE.Group();
+				nodeGroup.name = 'Particles Group';
 				scene.add( nodeGroup );
 
 				var material = new THREE.LineBasicMaterial({
@@ -538,48 +581,66 @@
 				if (itemsLeft.length > 0) {
 					var skullList = new THREE.Geometry();
 					for (var i = 0; i < itemsLeft.length; i++) {
+						var group = new THREE.Group();
 						var self = itemsLeft[i];
+
+						group.name = (self.name.length > 0) ? self.name : 'none' ;
+
 						skullList.vertices.push(
-							new THREE.Vector3(self.x, self.y, 1)
+							new THREE.Vector3(self.x, self.y, 0)
 						);
-						self.particle = drawParticle(
+						self.particle = createParticleList(
 							{x: self.x, y: self.y, z: 1},
 							self.desc,
 							self.size,
-							nodeGroup
+							group
 						);
 						self.text = createItemList(
 							{x: self.x, y: self.y, z: 0},
 							self.name,
+							self.desc,
 							'left',
-							nodeGroup
+							group,
+							self.size
 						);
+						nodeGroup.add( group );
+						particleGroup.push(self.particle);
+						particleGroup.push(self.text);
 					}
 					listL = new THREE.Line( skullList, material );
+					listL.name = 'List Left';
 					scene.add( listL );
 				}
 
 				if (itemsRight.length > 0) {
 					var skullList = new THREE.Geometry();
 					for (var i = 0; i < itemsRight.length; i++) {
+						var group = new THREE.Group();
+						group.name = (self.name.length > 0) ? self.name : 'none' ;
 						var self = itemsRight[i];
 						skullList.vertices.push(
-							new THREE.Vector3(self.x, self.y, 1)
+							new THREE.Vector3(self.x, self.y, 0)
 						);
-						self.particle = drawParticle(
+						self.particle = createParticleList(
 							{x: self.x, y: self.y, z: 1},
 							self.desc,
 							self.size,
-							nodeGroup
+							group
 						);
 						self.text = createItemList(
 							{x: self.x, y: self.y, z: 0},
 							self.name,
+							self.desc,
 							'right',
-							nodeGroup
+							group,
+							self.size
 						);
+						nodeGroup.add( group );
+						particleGroup.push(self.particle);
+						particleGroup.push(self.text);
 					}
 					listR = new THREE.Line( skullList, material );
+					listR.name = 'List Right';
 					scene.add( listR );
 				}
 
@@ -598,7 +659,7 @@
 					vertice.setY( item.y );
 
 					item.particle.position.set(item.x, item.y, 1);
-					item.text.position.set(item.x - item.text.geometry.parameters.width / 2, item.y, 1);
+					item.text.position.set(item.x - item.text.geometry.parameters.width/2, item.y, 0);
 
 					if (item.x + item.dx > item.maxWidth || item.x + item.dx < item.minWidth)
 						item.dx = -item.dx;
@@ -620,7 +681,7 @@
 					vertice.setY( item.y );
 
 					item.particle.position.set(item.x, item.y, 1);
-					item.text.position.set(item.x + item.text.geometry.parameters.width / 2, item.y, 1);
+					item.text.position.set(item.x + item.text.geometry.parameters.width/2, item.y, 0);
 
 					if (item.x + item.dx > item.maxWidth || item.x + item.dx < item.minWidth)
 						item.dx = -item.dx;
@@ -630,23 +691,6 @@
 					item.x += item.dx;
 					item.y += item.dy;
 				}
-
-			}
-
-			function drawParticle(pos, desc, size, group) {
-
-				var geometry = new THREE.CircleGeometry( size, 32 );
-				var material = new THREE.MeshBasicMaterial( {color: 0xCCCCCC} );
-				var particle = new THREE.Mesh( geometry, material );
-				particle.position.x = pos.x;
-				particle.position.y = pos.y;
-				particle.position.z = pos.z;
-				particle.name = desc
-
-				particles.push( particle );
-				group.add(particle);
-
-				return particle;
 
 			}
 
@@ -676,6 +720,12 @@
 
 				window.addEventListener( 'click', onWindowClick, false );
 				window.addEventListener( 'resize', onWindowResize, false );
+
+				for (var i = 0; i < nodeGroup.children.length; i++) {
+					for (var j = 0; j < nodeGroup.children[i].children.length; j++) {
+						console.log(nodeGroup.children[i].children);
+					}
+				}
 
 			}
 
@@ -708,7 +758,6 @@
 				render();
 
 				animateList();
-				
 
 			}
 
@@ -726,7 +775,6 @@
 				renderer.render( scene, camera );
 
 			}
-
 		</script>
 
 	</body>
