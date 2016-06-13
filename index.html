@@ -43,7 +43,7 @@
 					text: null,
 					name: '',
 					desc: '',
-					size: 1
+					size: 0
 				},
 				{
 					x: -220,
@@ -73,7 +73,7 @@
 					text: null,
 					name: '',
 					desc: '',
-					size: 1
+					size: 0
 				},
 				{
 					x: -280,
@@ -118,7 +118,7 @@
 					text: null,
 					name: '',
 					desc: '',
-					size: 1
+					size: 0
 				},
 				{
 					x: -260,
@@ -267,7 +267,7 @@
 
 					var intersects = raycaster.intersectObjects(particleGroup);
 
-					if (intersects.length > 0){
+					if (intersects.length > 0) {
 
 						if ( window.infoGroup !== undefined ) {
 							scene.remove( infoGroup ); // Se remueve si el gupo existe
@@ -332,16 +332,28 @@
 
 				raycaster.setFromCamera(mouse, camera);
 				var intersects = raycaster.intersectObjects(particleGroup);
+				var ob;
 
 				if (intersects.length > 0) {
+
+					if (intersects[0].object.geometry.type == "CircleGeometry") {
+						intersects[0].object.geometry.colorsNeedUpdate = true;
+						intersects[0].object.material.color.set(new THREE.Color('#1f9ae5'));
+						intersects[0].object.scale.set(2,2,2);
+					}
 
 					window.document.body.style.cursor = 'pointer';
 
 				} else {
 
+					for (var i = 0; i < particleGroup.length; i++) {
+						particleGroup[i].material.color.set(new THREE.Color('#CCCCCC'));
+						particleGroup[i].scale.set(1,1,1);
+					}
+
 					window.document.body.style.cursor = 'auto';
 
-					}
+				}
 
 			}
 
@@ -589,12 +601,17 @@
 						skullList.vertices.push(
 							new THREE.Vector3(self.x, self.y, 0)
 						);
-						self.particle = createParticleList(
-							{x: self.x, y: self.y, z: 1},
-							self.desc,
-							self.size,
-							group
-						);
+						if (self.size > 0) {
+							self.particle = createParticleList(
+								{x: self.x, y: self.y, z: 1},
+								self.desc,
+								self.size,
+								group
+							);
+							particleGroup.push(self.particle);
+						} else {
+							self.particle = new THREE.Group();
+						}
 						self.text = createItemList(
 							{x: self.x, y: self.y, z: 0},
 							self.name,
@@ -604,7 +621,6 @@
 							self.size
 						);
 						nodeGroup.add( group );
-						particleGroup.push(self.particle);
 						particleGroup.push(self.text);
 					}
 					listL = new THREE.Line( skullList, material );
@@ -621,12 +637,17 @@
 						skullList.vertices.push(
 							new THREE.Vector3(self.x, self.y, 0)
 						);
-						self.particle = createParticleList(
-							{x: self.x, y: self.y, z: 1},
-							self.desc,
-							self.size,
-							group
-						);
+						if (self.size > 0) {
+							self.particle = createParticleList(
+								{x: self.x, y: self.y, z: 1},
+								self.desc,
+								self.size,
+								group
+							);
+							particleGroup.push(self.particle);
+						} else {
+							self.particle = new THREE.Group();
+						}
 						self.text = createItemList(
 							{x: self.x, y: self.y, z: 0},
 							self.name,
@@ -636,7 +657,6 @@
 							self.size
 						);
 						nodeGroup.add( group );
-						particleGroup.push(self.particle);
 						particleGroup.push(self.text);
 					}
 					listR = new THREE.Line( skullList, material );
@@ -720,12 +740,6 @@
 
 				window.addEventListener( 'click', onWindowClick, false );
 				window.addEventListener( 'resize', onWindowResize, false );
-
-				for (var i = 0; i < nodeGroup.children.length; i++) {
-					for (var j = 0; j < nodeGroup.children[i].children.length; j++) {
-						console.log(nodeGroup.children[i].children);
-					}
-				}
 
 			}
 
