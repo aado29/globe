@@ -166,7 +166,7 @@
 					text: null,
 					name: '',
 					desc: '',
-					size: 1
+					size: 0
 				},
 				{
 					x: 250,
@@ -211,7 +211,7 @@
 					text: null,
 					name: '',
 					desc: '',
-					size: 1
+					size: 0
 				},
 				{
 					x: 250,
@@ -241,7 +241,7 @@
 					text: null,
 					name: '',
 					desc: '',
-					size: 1
+					size: 0
 				},
 			];
 
@@ -258,16 +258,37 @@
 
 				var raycaster = new THREE.Raycaster(),
 					mouse = new THREE.Vector2(),
-					sphereRadius = 105;
+					sphereRadius = 128;
 
 				mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 				mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 				raycaster.setFromCamera(mouse, camera);
-				for (var i = 0; i < nodeGroup.children.length; i++) {
 
-					var intersects = raycaster.intersectObjects(particleGroup);
+				var intersects = raycaster.intersectObjects(particleGroup);
 
-					if (intersects.length > 0) {
+				if (intersects.length > 0) {
+
+					for (var i = 0; i < particleGroup.length; i++) {
+						var _this = particleGroup[i];
+						if (_this.geometry.type == "CircleGeometry") {
+
+							_this.geometry.colorActive = false
+							_this.material.color.set(new THREE.Color('#CCCCCC'));
+							_this.scale.set(1,1,1);
+							window.document.body.style.cursor = 'auto';
+
+						}
+					}
+
+					var _this = intersects[0].object;
+
+					if (_this.geometry.type == "CircleGeometry") {
+
+						console.log(_this.geometry.colorActive);
+
+						_this.geometry.colorActive = true;
+						_this.material.color.set(new THREE.Color('#3399CC'));
+						_this.scale.set(2,2,2);
 
 						if ( window.infoGroup !== undefined ) {
 							scene.remove( infoGroup ); // Se remueve si el gupo existe
@@ -278,7 +299,7 @@
 
 						// Use the intersected objects: 
 						// intersects[0] represents the foremost object that was hovered
-						var message = intersects[0].object.name;
+						var message = _this.name;
 
 						var canvas = document.createElement('canvas');
 						canvas.width = sphereRadius * 2;
@@ -303,20 +324,31 @@
 						material.transparent = true;
 						var overlay = new THREE.Mesh( geometry, material );
 						overlay.name = 'Overlay';
-						overlay.position.x = 0;
-						overlay.position.y = 0;
-						overlay.position.z = 200;
+						overlay.position.set(0, 0, 200);
+						overlay.scale.set(0.8, 0.8, 0.8);
 
 						infoGroup.add( overlay );
 
-
-					} else {
-
-						if ( window.infoGroup !== undefined ) {
-							scene.remove( infoGroup ); // Se remueve si el gupo existe
-						}
-
 					}
+
+				} else {
+
+					if ( window.infoGroup !== undefined ) {
+						scene.remove( infoGroup ); // Se remueve si el gupo existe
+					}
+
+					for (var i = 0; i < particleGroup.length; i++) {
+						var _this = particleGroup[i];
+						if (_this.geometry.type == "CircleGeometry") {
+
+							_this.geometry.colorActive = false
+							_this.material.color.set(new THREE.Color('#CCCCCC'));
+							_this.scale.set(1,1,1);
+							window.document.body.style.cursor = 'auto';
+
+						}
+					}
+
 				}
 
 			}
@@ -332,26 +364,54 @@
 
 				raycaster.setFromCamera(mouse, camera);
 				var intersects = raycaster.intersectObjects(particleGroup);
-				var ob;
 
 				if (intersects.length > 0) {
+					var _this = intersects[0].object;
 
-					if (intersects[0].object.geometry.type == "CircleGeometry") {
-						intersects[0].object.geometry.colorsNeedUpdate = true;
-						intersects[0].object.material.color.set(new THREE.Color('#1f9ae5'));
-						intersects[0].object.scale.set(2,2,2);
+					if ( _this.geometry.type == "CircleGeometry") {
+
+						if (_this.geometry.colorActive == false) {
+
+							_this.material.color.set(new THREE.Color('#3399CC'));
+							_this.scale.set(2,2,2);
+
+							window.document.body.style.cursor = 'pointer';
+
+						}
+
+					} else {
+						for (var i = 0; i < particleGroup.length; i++) {
+
+							var _this = particleGroup[i];
+
+							if ( _this.geometry.type == "CircleGeometry") {
+
+								if (_this.geometry.colorActive == false) {
+								
+									_this.material.color.set(new THREE.Color('#CCCCCC'));
+									_this.scale.set(1,1,1);
+								
+									window.document.body.style.cursor = 'auto';
+								}
+							}
+						}
 					}
-
-					window.document.body.style.cursor = 'pointer';
 
 				} else {
 
 					for (var i = 0; i < particleGroup.length; i++) {
-						particleGroup[i].material.color.set(new THREE.Color('#CCCCCC'));
-						particleGroup[i].scale.set(1,1,1);
+						var _this = particleGroup[i];
+						if ( _this.geometry.type == "CircleGeometry") {
+
+							_this.scale.set(1,1,1);
+							
+							if (_this.geometry.colorActive == false) {
+								_this.material.color.set(new THREE.Color('#CCCCCC'));
+								window.document.body.style.cursor = 'auto';
+							}
+						}
 					}
 
-					window.document.body.style.cursor = 'auto';
 
 				}
 
@@ -609,6 +669,8 @@
 								group
 							);
 							particleGroup.push(self.particle);
+							self.particle.geometry.colorActive = false;
+							console.log(self.particle.geometry.colorActive);
 						} else {
 							self.particle = new THREE.Group();
 						}
@@ -645,6 +707,8 @@
 								group
 							);
 							particleGroup.push(self.particle);
+							self.particle.geometry.colorActive = false;
+							console.log(self.particle.geometry.colorActive);
 						} else {
 							self.particle = new THREE.Group();
 						}
