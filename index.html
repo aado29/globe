@@ -11,848 +11,264 @@
 				margin: 0px;
 				overflow: hidden;
 			}
+			#geometryMessage {
+				position: relative;
+			}
+
+			#geometryMessage p {
+				width: 100%;
+				position: absolute;
+				margin: 0;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				text-align: center;
+			}
 		</style>
 	</head>
 	<body>
-
+		<div id="container"></div>
 		<script src="three.min.js"></script>
 		<script src="http://threejs.org/examples/js/libs/tween.min.js"></script>
-		<script src="http://gamestd.io/three-text2d/dist/three-text2d.js"></script>
+		<script src="https://rawgit.com/mrdoob/three.js/master/examples/js/renderers/CSS3DRenderer.js"></script>
+		<script src="globe.js"></script>
 
 		<script>
 
-			var container;
+			
 
-			var camera, globeGroup, nodeGroup, infoGroup, scene, renderer;
+			var container = 'container';
 
-			var mouseX = -200, mouseY = 200, windowHalfX = window.innerWidth / 2, windowHalfY = window.innerHeight / 2;
-
-			var geometry, radius = 200;
-
-			var itemsLeft = [
+			var list = [
 				{
-					x: -70, //coordenada x
-					y: 200,
-					dx: 0,
-					dy: 0,
-					maxWidth: null,
-					minWidth: null,
-					maxHeight:null,
-					minHeight:null,
-					particle: null,
-					text: null,
-					name: '',
-					desc: '',
-					size: 0
+					type: 'left',
+					geometry: null,
+					data: [
+						{
+							x: -70, //coordenada x
+							y: 200,
+							dx: 0,
+							dy: 0,
+							maxWidth: null,
+							minWidth: null,
+							maxHeight:null,
+							minHeight:null,
+							particle: null,
+							text: null,
+							name: '',
+							desc: '',
+							size: 0
+						},
+						{
+							x: -220,
+							y: 200,
+							dx: 0.13,
+							dy: 0.09,
+							maxWidth: -220 + 25,
+							minWidth: -220 - 25,
+							maxHeight: 200 + 25,
+							minHeight: 200 - 25,
+							particle: null,
+							text: null,
+							name: 'Innovacion\ny liderazgo',
+							desc: 'Lorem Ipsum dolor Lorem Ipsum dolor Lorem Ipsum dolor Lorem Ipsum dolor Lorem Ipsum dolor Lorem Ipsum dolor Lorem Ipsum dolor',
+							size: 12
+						},
+						{
+							x: -203,
+							y: 80,
+							dx: 0,
+							dy: 0,
+							maxWidth: null,
+							minWidth: null,
+							maxHeight:null,
+							minHeight:null,
+							particle: null,
+							text: null,
+							name: '',
+							desc: '',
+							size: 0
+						},
+						{
+							x: -280,
+							y: 70,
+							dx: 0.12,
+							dy: 0.094,
+							maxWidth: -280 + 23,
+							minWidth: -280 - 23,
+							maxHeight: 70 + 20,
+							minHeight: 70 - 20,
+							particle: null,
+							text: null,
+							name: 'Equipo\nMultidiplinario',
+							desc: 'Lorem Ipsum dolor',
+							size: 8
+						},
+						{
+							x: -280,
+							y: -50,
+							dx: 0.09,
+							dy: 0.12,
+							maxWidth: -280 + 25,
+							minWidth: -280 - 25,
+							maxHeight: -50 + 28,
+							minHeight: -50 - 28,
+							particle: null,
+							text: null,
+							name: 'Partner de\nConfianza',
+							desc: 'Lorem Ipsum dolor',
+							size: 9
+						},
+						{
+							x: -168,
+							y: -125,
+							dx: 0,
+							dy: 0,
+							maxWidth: null,
+							minWidth: null,
+							maxHeight:null,
+							minHeight:null,
+							particle: null,
+							text: null,
+							name: '',
+							desc: '',
+							size: 0
+						},
+						{
+							x: -260,
+							y: -200,
+							dx: 0.1,
+							dy: 0.14,
+							maxWidth: -260 + 25,
+							minWidth: -260 - 25,
+							maxHeight: -200 + 28,
+							minHeight: -200 - 28,
+							particle: null,
+							text: null,
+							name: 'Certificaciones',
+							desc: 'Lorem Ipsum dolor',
+							size: 10
+						}
+					]
 				},
-				{
-					x: -220,
-					y: 200,
-					dx: 0.13,
-					dy: 0.09,
-					maxWidth: -220 + 25,
-					minWidth: -220 - 25,
-					maxHeight: 200 + 25,
-					minHeight: 200 - 25,
-					particle: null,
-					text: null,
-					name: 'Innovacion\ny liderazgo',
-					desc: 'Lorem Ipsum dolor',
-					size: 12
-				},
-				{
-					x: -203,
-					y: 80,
-					dx: 0,
-					dy: 0,
-					maxWidth: null,
-					minWidth: null,
-					maxHeight:null,
-					minHeight:null,
-					particle: null,
-					text: null,
-					name: '',
-					desc: '',
-					size: 0
-				},
-				{
-					x: -280,
-					y: 70,
-					dx: 0.12,
-					dy: 0.094,
-					maxWidth: -280 + 23,
-					minWidth: -280 - 23,
-					maxHeight: 70 + 20,
-					minHeight: 70 - 20,
-					particle: null,
-					text: null,
-					name: 'Equipo\nMultidiplinario',
-					desc: 'Lorem Ipsum dolor',
-					size: 8
-				},
-				{
-					x: -280,
-					y: -50,
-					dx: 0.09,
-					dy: 0.12,
-					maxWidth: -280 + 25,
-					minWidth: -280 - 25,
-					maxHeight: -50 + 28,
-					minHeight: -50 - 28,
-					particle: null,
-					text: null,
-					name: 'Partner de\nConfianza',
-					desc: 'Lorem Ipsum dolor',
-					size: 9
-				},
-				{
-					x: -168,
-					y: -125,
-					dx: 0,
-					dy: 0,
-					maxWidth: null,
-					minWidth: null,
-					maxHeight:null,
-					minHeight:null,
-					particle: null,
-					text: null,
-					name: '',
-					desc: '',
-					size: 0
-				},
-				{
-					x: -260,
-					y: -200,
-					dx: 0.1,
-					dy: 0.14,
-					maxWidth: -260 + 25,
-					minWidth: -260 - 25,
-					maxHeight: -200 + 28,
-					minHeight: -200 - 28,
-					particle: null,
-					text: null,
-					name: 'Certificaciones',
-					desc: 'Lorem Ipsum dolor',
-					size: 10
+				{ 
+					type: 'right',
+					geometry: null,
+					data: [
+						{
+							x: 240,
+							y: 200,
+							dx: 0.09,
+							dy: 0.14,
+							maxWidth: 240 + 20,
+							minWidth: 240 - 20,
+							maxHeight: 200 + 20,
+							minHeight: 200 - 20,
+							particle: null,
+							text: null,
+							name: 'Visionarios',
+							desc: 'Lorem Ipsum dolor',
+							size: 5
+						},
+						{
+							x: 155,
+							y: 140,
+							dx: 0,
+							dy: 0,
+							maxWidth: null,
+							minWidth: null,
+							maxHeight: null,
+							minHeight: null,
+							particle: null,
+							text: null,
+							name: '',
+							desc: '',
+							size: 0
+						},
+						{
+							x: 250,
+							y: 80,
+							dx: 0.03,
+							dy: 0.04,
+							maxWidth: 250 + 20,
+							minWidth: 250 - 20,
+							maxHeight: 80 + 20,
+							minHeight: 80 - 20,
+							particle: null,
+							text: null,
+							name: 'Expertise',
+							desc: 'Lorem Ipsum dolor1',
+							size: 8
+						},
+						{
+							x: 290,
+							y: -80,
+							dx: 0.13,
+							dy: 0.08,
+							maxWidth: 290 + 20,
+							minWidth: 290 - 20,
+							maxHeight: -80 + 20,
+							minHeight: -80 - 20,
+							particle: null,
+							text: null,
+							name: 'Responsabilidad\nSocial',
+							desc: 'Lorem Ipsum dolor1',
+							size: 9
+						},
+						{
+							x: 205,
+							y: -80,
+							dx: 0,
+							dy: 0,
+							maxWidth: null,
+							minWidth: null,
+							maxHeight: null,
+							minHeight: null,
+							particle: null,
+							text: null,
+							name: '',
+							desc: '',
+							size: 0
+						},
+						{
+							x: 250,
+							y: -200,
+							dx: 0.16,
+							dy: 0.09,
+							maxWidth: 250 + 20,
+							minWidth: 250 - 20,
+							maxHeight: -200 + 20,
+							minHeight: -200 - 20,
+							particle: null,
+							text: null,
+							name: 'Alianzas\nEstrategicas',
+							desc: 'Lorem Ipsum dolor1',
+							size: 6
+						},
+						{
+							x: 140,
+							y: -140,
+							dx: 0,
+							dy: 0,
+							maxWidth: null,
+							minWidth: null,
+							maxHeight: null,
+							minHeight: null,
+							particle: null,
+							text: null,
+							name: '',
+							desc: '',
+							size: 0
+						},
+					]
 				}
 			];
 
-			var itemsRight = [
-				{
-					x: 240,
-					y: 200,
-					dx: 0.09,
-					dy: 0.14,
-					maxWidth: 240 + 20,
-					minWidth: 240 - 20,
-					maxHeight: 200 + 20,
-					minHeight: 200 - 20,
-					particle: null,
-					text: null,
-					name: 'Visionarios',
-					desc: 'Lorem Ipsum dolor',
-					size: 5
-				},
-				{
-					x: 155,
-					y: 140,
-					dx: 0,
-					dy: 0,
-					maxWidth: null,
-					minWidth: null,
-					maxHeight: null,
-					minHeight: null,
-					particle: null,
-					text: null,
-					name: '',
-					desc: '',
-					size: 0
-				},
-				{
-					x: 250,
-					y: 80,
-					dx: 0.03,
-					dy: 0.04,
-					maxWidth: 250 + 20,
-					minWidth: 250 - 20,
-					maxHeight: 80 + 20,
-					minHeight: 80 - 20,
-					particle: null,
-					text: null,
-					name: 'Expertise',
-					desc: 'Lorem Ipsum dolor1',
-					size: 8
-				},
-				{
-					x: 290,
-					y: -80,
-					dx: 0.13,
-					dy: 0.08,
-					maxWidth: 290 + 20,
-					minWidth: 290 - 20,
-					maxHeight: -80 + 20,
-					minHeight: -80 - 20,
-					particle: null,
-					text: null,
-					name: 'Responsabilidad\nSocial',
-					desc: 'Lorem Ipsum dolor1',
-					size: 9
-				},
-				{
-					x: 205,
-					y: -80,
-					dx: 0,
-					dy: 0,
-					maxWidth: null,
-					minWidth: null,
-					maxHeight: null,
-					minHeight: null,
-					particle: null,
-					text: null,
-					name: '',
-					desc: '',
-					size: 0
-				},
-				{
-					x: 250,
-					y: -200,
-					dx: 0.16,
-					dy: 0.09,
-					maxWidth: 250 + 20,
-					minWidth: 250 - 20,
-					maxHeight: -200 + 20,
-					minHeight: -200 - 20,
-					particle: null,
-					text: null,
-					name: 'Alianzas\nEstrategicas',
-					desc: 'Lorem Ipsum dolor1',
-					size: 6
-				},
-				{
-					x: 140,
-					y: -140,
-					dx: 0,
-					dy: 0,
-					maxWidth: null,
-					minWidth: null,
-					maxHeight: null,
-					minHeight: null,
-					particle: null,
-					text: null,
-					name: '',
-					desc: '',
-					size: 0
-				},
-			];
-
-			var listR, listL;
-
-			var particleGroup = [];
-
-			// start scene
-
-			init();
-			animate();
-
-			function handleClickParticle(event) {
-
-				var raycaster = new THREE.Raycaster(),
-					mouse = new THREE.Vector2(),
-					sphereRadius = 128;
-
-				mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-				mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
-				raycaster.setFromCamera(mouse, camera);
-
-				var intersects = raycaster.intersectObjects(particleGroup);
-
-				if (intersects.length > 0) {
-
-					for (var i = 0; i < particleGroup.length; i++) {
-						var _this = particleGroup[i];
-						if (_this.geometry.type == "CircleGeometry") {
-
-							_this.geometry.colorActive = false
-							_this.material.color.set(new THREE.Color('#CCCCCC'));
-							_this.scale.set(1,1,1);
-							window.document.body.style.cursor = 'auto';
-
-						}
-					}
-
-					var _this = intersects[0].object;
-
-					if (_this.geometry.type == "CircleGeometry") {
-
-						console.log(_this.geometry.colorActive);
-
-						_this.geometry.colorActive = true;
-						_this.material.color.set(new THREE.Color('#3399CC'));
-						_this.scale.set(2,2,2);
-
-						if ( window.infoGroup !== undefined ) {
-							scene.remove( infoGroup ); // Se remueve si el gupo existe
-						}
-
-						infoGroup = new THREE.Group();
-						scene.add( infoGroup );
-
-						// Use the intersected objects: 
-						// intersects[0] represents the foremost object that was hovered
-						var message = _this.name;
-
-						var canvas = document.createElement('canvas');
-						canvas.width = sphereRadius * 2;
-						canvas.height = sphereRadius * 2;
-
-						var ctx = canvas.getContext('2d');
-
-						ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
-						ctx.fillRect(0,0,canvas.width,canvas.height);
-
-						ctx.font = "Bold 12px Arial";
-						ctx.fillStyle = "#000000";
-						ctx.textAlign = "center";
-						ctx.fillText(message, canvas.width/2, canvas.width/2);
-
-						// canvas contents will be used for a texture
-						var txtr = new THREE.Texture(canvas);
-						txtr.needsUpdate = true;
-
-						var geometry = new THREE.CircleGeometry( sphereRadius, 50 );
-						var material = new THREE.MeshBasicMaterial( {map: txtr, side:THREE.DoubleSide } );
-						material.transparent = true;
-						var overlay = new THREE.Mesh( geometry, material );
-						overlay.name = 'Overlay';
-						overlay.position.set(0, 0, 200);
-						overlay.scale.set(0.8, 0.8, 0.8);
-
-						infoGroup.add( overlay );
-
-					}
-
-				} else {
-
-					if ( window.infoGroup !== undefined ) {
-						scene.remove( infoGroup ); // Se remueve si el gupo existe
-					}
-
-					for (var i = 0; i < particleGroup.length; i++) {
-						var _this = particleGroup[i];
-						if (_this.geometry.type == "CircleGeometry") {
-
-							_this.geometry.colorActive = false
-							_this.material.color.set(new THREE.Color('#CCCCCC'));
-							_this.scale.set(1,1,1);
-							window.document.body.style.cursor = 'auto';
-
-						}
-					}
-
-				}
-
-			}
-
-			function handleHoverParticle(event) {
-
-				var raycaster = new THREE.Raycaster(),
-					mouse = new THREE.Vector2();
-
-				mouse.x = 2 * (event.clientX / window.innerWidth) - 1;
-				mouse.y = -2 * (event.clientY / window.innerHeight) + 1;
-				mouse.z = 1;
-
-				raycaster.setFromCamera(mouse, camera);
-				var intersects = raycaster.intersectObjects(particleGroup);
-
-				if (intersects.length > 0) {
-					var _this = intersects[0].object;
-
-					if ( _this.geometry.type == "CircleGeometry") {
-
-						if (_this.geometry.colorActive == false) {
-
-							_this.material.color.set(new THREE.Color('#3399CC'));
-							_this.scale.set(2,2,2);
-
-							window.document.body.style.cursor = 'pointer';
-
-						}
-
-					} else {
-						for (var i = 0; i < particleGroup.length; i++) {
-
-							var _this = particleGroup[i];
-
-							if ( _this.geometry.type == "CircleGeometry") {
-
-								if (_this.geometry.colorActive == false) {
-								
-									_this.material.color.set(new THREE.Color('#CCCCCC'));
-									_this.scale.set(1,1,1);
-								
-									window.document.body.style.cursor = 'auto';
-								}
-							}
-						}
-					}
-
-				} else {
-
-					for (var i = 0; i < particleGroup.length; i++) {
-						var _this = particleGroup[i];
-						if ( _this.geometry.type == "CircleGeometry") {
-
-							_this.scale.set(1,1,1);
-							
-							if (_this.geometry.colorActive == false) {
-								_this.material.color.set(new THREE.Color('#CCCCCC'));
-								window.document.body.style.cursor = 'auto';
-							}
-						}
-					}
-
-
-				}
-
-			}
-
-			function drawBackground() {
-
-				var loader = new THREE.TextureLoader();
-				loader.load(
-					'globe.png',
-					function ( image ) {
-						var bg = new THREE.Mesh( 
-							new THREE.PlaneGeometry(radius * 2.2, radius * 2.2),
-							new THREE.MeshBasicMaterial( {
-								map: image,
-								transparent: true,
-								opacity: 0.5,
-								color: 0xCCCCCC
-							} )
-						);
-						bg.name = 'Background Image';
-
-						scene.add(bg);
-					}
-				);
-
-			}
-
-			function createGlobeTexture() {
-
-				var canvas, size = 256;
-
-				// create canvas
-				canvas = document.createElement( 'canvas' );
-				canvas.width = size;
-				canvas.height = size;
-
-				// get context
-				var context = canvas.getContext( '2d' );
-
-				// draw gradient
-				context.rect( 0, 0, size, size );
-				var gradient = context.createLinearGradient( 0, 0, size, size );
-				gradient.addColorStop(0.2, '#1f9ae5'); // blue light 
-				gradient.addColorStop(1, '#1ec480'); // green
-				context.fillStyle = gradient;
-				context.fill();
-
-				var texture = new THREE.Texture( canvas );
-				texture.needsUpdate = true;
-
-				return texture;
-
-			}
-
-			function drawGlobe() {
-
-				if ( window.globeGroup !== undefined ) {
-					scene.remove( globeGroup ); // Se remueve si el gupo existe
-				}
-
-				globeGroup = new THREE.Group();
-				scene.add( globeGroup );
-
-				geometry = new THREE.IcosahedronGeometry( radius, 1 );
-
-				// scale geometry to a uniform size
-				geometry.computeBoundingSphere();
-
-				var scaleFactor = 160 / geometry.boundingSphere.radius;
-				geometry.scale( scaleFactor, scaleFactor, scaleFactor );
-
-				// in case of duplicated vertices
-				geometry.mergeVertices();
-				geometry.computeFaceNormals();
-				geometry.computeVertexNormals( true );
-
-				var mesh = new THREE.Mesh(
-					geometry
-					, new THREE.MeshBasicMaterial( { 
-						color: 0xfefefe,
-						wireframe: true,
-						wireframeLinewidth: 2,
-						opacity: 0.5,
-						map: createGlobeTexture()
-					} ) );
-
-				mesh.name = 'Globe 3D';
-				globeGroup.add( mesh );
-
-				var fvNames = [ 'a', 'b', 'c' ];
-
-				for( var f = 0, fl = mesh.geometry.faces.length; f < fl; f ++ ) {
-					var face = mesh.geometry.faces[ f ];
-					if( face.vertexNormals === undefined ) {
-						continue;
-					}
-					for( var v = 0, vl = face.vertexNormals.length; v < vl; v ++ ) {
-						var coor = mesh.geometry.vertices[ face[ fvNames[ v ] ] ];
-
-						var particle = new THREE.Mesh( 
-							new THREE.SphereGeometry( 0.5, 32, 32 ),
-							new THREE.MeshBasicMaterial( {
-								opacity: 1, 
-								map: createGlobeTexture(),
-								transparent: true
-							} ) 
-						);
-						particle.name = 'Globe particle ' + f;
-						particle.position.set( coor.x, coor.y, coor.z);
-						particle.scale.set( 12, 12, 12 );
-						
-						globeGroup.add( particle );
-					}
-				}
-
-			}
-
-			function addStuff() {
-
-				drawGlobe();
-				drawBackground();
-				drawList();
-
-			}
-
-			function createItemList(pos, text, desc, align, group, sizeParticle) {
-
-				var itemText = drawText(text, sizeParticle, align);
-				itemText.name = desc;
-				group.add(itemText);
-
-				return itemText;
-
-			}
-
-			function drawText( text, sizeParticle, align ) {
-
-				var canvas = document.createElement('canvas');
-				var ctx = canvas.getContext('2d');
-				var fontSize = 20;
-				var font = fontSize + "px Arial";
-
-				var maxWidth = 1;
-
-				var arrMessage = text.split('\n');
-
-				for (var i = 0; i < arrMessage.length; i++) {
-					ctx.font = font;
-					var txt = arrMessage[i];
-					var cw = ctx.measureText(txt).width;
-					maxWidth = ( cw > maxWidth) ? cw : maxWidth;
-				}
-
-				var margin = 20,
-					w = maxWidth + (fontSize * 4),
-					h = 128;
-
-				if(text.length < 1)
-					var w = 1, h = 1;
-				
-				canvas.width = w;
-				canvas.height = h;
-
-				// fill the canvas
-				// ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
-				// ctx.fillRect(0,0,w,h);	
-
-				var x,
-					y = h/2 + fontSize/2;
-
-				for (var i = 0; i < arrMessage.length; i++) {
-					ctx.font = font;
-					ctx.fillStyle = "#808080";
-					if (align == 'right') {
-						ctx.textAlign = 'left';
-						x = 0 + fontSize;
-					} else {
-						ctx.textAlign = 'right';
-						x = w - fontSize;
-					}
-					var txt = arrMessage[i].toUpperCase();
-					if (arrMessage.length < 2)
-						ctx.fillText(txt, x, y );
-					else
-						ctx.fillText(txt, x, fontSize * ( i + 1 ) + ( arrMessage.length * fontSize ) );
-
-				}
-				// canvas contents will be used for a texture
-				var texture = new THREE.Texture(canvas);
-				texture.needsUpdate = true;
-				var material = new THREE.MeshBasicMaterial( {map: texture, side:THREE.DoubleSide } );
-				material.transparent = true;
-				var sprite = new THREE.Mesh(
-					new THREE.PlaneGeometry(canvas.width, canvas.height),
-					material
-				);
-				
-        		return sprite;
-
-			}
-
-			function createParticleList(pos, desc, size, group) {
-
-				var particle = drawParticle(size);
-				particle.name = desc;
-
-				group.add(particle);
-
-				return particle;
-
-			}
-
-			function drawParticle(size) {
-
-				var geometry = new THREE.CircleGeometry( size, 32 );
-				var material = new THREE.MeshBasicMaterial( {color: 0xCCCCCC} );
-				var particle = new THREE.Mesh( geometry, material );
-
-				return particle;
-
-			}
-
-			function drawList() {
-
-				if ( window.nodeGroup !== undefined ) {
-					scene.remove( nodeGroup ); // Se remueve si el gupo existe
-				}
-
-				nodeGroup = new THREE.Group();
-				nodeGroup.name = 'Particles Group';
-				scene.add( nodeGroup );
-
-				var material = new THREE.LineBasicMaterial({
-					color: 0xCCCCCC,
-					linewidth: 1.5
-				});
-
-				if (itemsLeft.length > 0) {
-					var skullList = new THREE.Geometry();
-					for (var i = 0; i < itemsLeft.length; i++) {
-						var group = new THREE.Group();
-						var self = itemsLeft[i];
-
-						group.name = (self.name.length > 0) ? self.name : 'none' ;
-
-						skullList.vertices.push(
-							new THREE.Vector3(self.x, self.y, 0)
-						);
-						if (self.size > 0) {
-							self.particle = createParticleList(
-								{x: self.x, y: self.y, z: 1},
-								self.desc,
-								self.size,
-								group
-							);
-							particleGroup.push(self.particle);
-							self.particle.geometry.colorActive = false;
-							console.log(self.particle.geometry.colorActive);
-						} else {
-							self.particle = new THREE.Group();
-						}
-						self.text = createItemList(
-							{x: self.x, y: self.y, z: 0},
-							self.name,
-							self.desc,
-							'left',
-							group,
-							self.size
-						);
-						nodeGroup.add( group );
-						particleGroup.push(self.text);
-					}
-					listL = new THREE.Line( skullList, material );
-					listL.name = 'List Left';
-					scene.add( listL );
-				}
-
-				if (itemsRight.length > 0) {
-					var skullList = new THREE.Geometry();
-					for (var i = 0; i < itemsRight.length; i++) {
-						var group = new THREE.Group();
-						group.name = (self.name.length > 0) ? self.name : 'none' ;
-						var self = itemsRight[i];
-						skullList.vertices.push(
-							new THREE.Vector3(self.x, self.y, 0)
-						);
-						if (self.size > 0) {
-							self.particle = createParticleList(
-								{x: self.x, y: self.y, z: 1},
-								self.desc,
-								self.size,
-								group
-							);
-							particleGroup.push(self.particle);
-							self.particle.geometry.colorActive = false;
-							console.log(self.particle.geometry.colorActive);
-						} else {
-							self.particle = new THREE.Group();
-						}
-						self.text = createItemList(
-							{x: self.x, y: self.y, z: 0},
-							self.name,
-							self.desc,
-							'right',
-							group,
-							self.size
-						);
-						nodeGroup.add( group );
-						particleGroup.push(self.text);
-					}
-					listR = new THREE.Line( skullList, material );
-					listR.name = 'List Right';
-					scene.add( listR );
-				}
-
-			}
-
-			function animateList() {
-
-				listL.geometry.verticesNeedUpdate = true;
-				var verticesL = listL.geometry.vertices;
-
-				for (var i = 0; i < itemsLeft.length; i++) {
-					var vertice = verticesL[i],
-						item = itemsLeft[i];
-
-					vertice.setX( item.x );
-					vertice.setY( item.y );
-
-					item.particle.position.set(item.x, item.y, 1);
-					item.text.position.set(item.x - item.text.geometry.parameters.width/2, item.y, 0);
-
-					if (item.x + item.dx > item.maxWidth || item.x + item.dx < item.minWidth)
-						item.dx = -item.dx;
-					if (item.y + item.dy > item.maxHeight || item.y + item.dy < item.minHeight)
-						item.dy = -item.dy;
-
-					item.x += item.dx;
-					item.y += item.dy;
-				}
-
-				listR.geometry.verticesNeedUpdate = true;
-				var verticesR = listR.geometry.vertices;
-
-				for (var i = 0; i < itemsRight.length; i++) {
-					var vertice = verticesR[i],
-						item = itemsRight[i];
-
-					vertice.setX( item.x );
-					vertice.setY( item.y );
-
-					item.particle.position.set(item.x, item.y, 1);
-					item.text.position.set(item.x + item.text.geometry.parameters.width/2, item.y, 0);
-
-					if (item.x + item.dx > item.maxWidth || item.x + item.dx < item.minWidth)
-						item.dx = -item.dx;
-					if (item.y + item.dy > item.maxHeight || item.y + item.dy < item.minHeight)
-						item.dy = -item.dy;
-
-					item.x += item.dx;
-					item.y += item.dy;
-				}
-
-			}
-
-			function init() {
-
-				container = document.createElement( 'div' );
-				document.body.appendChild( container );
-
-				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-				camera.position.z = 500;
-
-				scene = new THREE.Scene();
-
-				var light = new THREE.PointLight( 0xffffff, 1.5 );
-				light.position.set( 1000, 1000, 2000 );
-				scene.add( light );
-
-				addStuff();
-
-				renderer = new THREE.WebGLRenderer( { antialias: true } ); // WebGLRenderer CanvasRenderer
-				renderer.setClearColor( 0xf0f0f0 );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container.appendChild( renderer.domElement );
-				renderer.domElement.addEventListener('click', handleClickParticle, false);
-				renderer.domElement.addEventListener('mousemove', handleHoverParticle, false);
-
-				window.addEventListener( 'click', onWindowClick, false );
-				window.addEventListener( 'resize', onWindowResize, false );
-
-			}
-
-			function onWindowResize() {
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-			}
-
-			function onWindowClick(e) {
-
-				mouseX = ( e.clientX - windowHalfX );
-				mouseY = ( e.clientY - windowHalfY );
-
-				new TWEEN.Tween( globeGroup.rotation ).to( {
-					x: ( mouseY ) / 100,
-					y: - ( mouseX ) / 100 
-				}, 2000 )
-				.easing( TWEEN.Easing.Elastic.Out).start();
-
-			}
-
-			function animate() {
-
-				requestAnimationFrame( animate );
-
-				render();
-
-				animateList();
-
-			}
-
-			function render() {
-
-				TWEEN.update();
-
-				// globeGroup.rotation.x += ( mouseX - globeGroup.rotation.x ) * 0.9;
-				// globeGroup.rotation.y += ( mouseY - globeGroup.rotation.y ) * 0.9;
-
-				console.log()
-
-				camera.lookAt( scene.position );
-
-				renderer.render( scene, camera );
-
-			}
+			var globe = new Globe(container, list);
+			globe.init();
+			globe.update();
+
+			
 		</script>
 
 	</body>
