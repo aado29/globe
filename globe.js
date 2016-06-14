@@ -64,6 +64,32 @@ var Globe = function(container, list) {
 
 	}
 
+	this.createShadow = function() {
+
+		var canvas = document.createElement( 'canvas' );
+		canvas.width = 128;
+		canvas.height = 128;
+
+		var context = canvas.getContext( '2d' );
+		var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
+		gradient.addColorStop( 0.1, 'rgba(210,210,210,1)' );
+		gradient.addColorStop( 1, 'rgba(255,255,255,1)' );
+
+		context.fillStyle = gradient;
+		//context.fillStyle = '#000000';
+		context.fillRect( 0, 0, canvas.width, canvas.height );
+
+		var shadowTexture = new THREE.Texture( canvas );
+		shadowTexture.needsUpdate = true;
+
+		var shadowMaterial = new THREE.MeshBasicMaterial( { map: shadowTexture } );
+		var shadowGeo = new THREE.PlaneBufferGeometry( 300, 300, 1, 1 );
+		var mesh = new THREE.Mesh( shadowGeo, shadowMaterial );
+
+		return mesh;
+
+	}
+
 	this.createLight = function() {
 
 		var light = new THREE.PointLight( 0xffffff, 1.5 );
@@ -185,6 +211,13 @@ var Globe = function(container, list) {
 
 		mesh.name = 'Globe 3D';
 		this.globeGroup.add( mesh );
+
+		var shadow = this.createShadow();
+		shadow.name = 'Globe Shadow';
+		shadow.position.y = - (this.globeRadius + 50);
+		shadow.rotation.x = - Math.PI / 1.6;
+		this.globeGroup.add( shadow );
+		console.log(shadow);
 
 		for (var i = 0; i < mesh.geometry.vertices.length; i++) {
 			var coor = mesh.geometry.vertices[i];
@@ -519,12 +552,6 @@ var Globe = function(container, list) {
 
 	}
 
-	var clearSpace = function(name, scene) {
-		var object = scene.getObjectByName(name);
-		if (object)
-			scene.remove(object);
-	}
-
 	this.handleClickParticle = function(e) {
 
 		var raycaster = this.raycaster,
@@ -608,6 +635,14 @@ var Globe = function(container, list) {
 
 		}
 
+	}
+
+	var clearSpace = function(name, scene) {
+
+		var object = scene.getObjectByName(name);
+		if (object)
+			scene.remove(object);
+	
 	}
 
 }
