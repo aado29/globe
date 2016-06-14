@@ -139,11 +139,11 @@ var Globe = function(container, list) {
 		var loader = new THREE.TextureLoader();
 		loader.load('globe.png', function ( image ) {
 			var bg = new THREE.Mesh( 
-				new THREE.PlaneGeometry(self.globeRadius * 2.2, self.globeRadius * 2.2),
+				new THREE.PlaneGeometry(self.globeRadius * 2, self.globeRadius * 2),
 				new THREE.MeshBasicMaterial( {
 					map: image,
 					transparent: true,
-					opacity: 1,
+					opacity: 0.5,
 					color: 0xCCCCCC
 				} )
 			);
@@ -203,7 +203,7 @@ var Globe = function(container, list) {
 			map: this.createGlobeTexture(),
 			transparent: true,
 			wireframe: true,
-			wireframeLinewidth: 2,
+			wireframeLinewidth: 1,
 			opacity: 1,
 		} );
 
@@ -222,7 +222,7 @@ var Globe = function(container, list) {
 			var coor = mesh.geometry.vertices[i];
 
 			var particle = new THREE.Mesh( 
-				new THREE.SphereGeometry( 5, 32, 32 ),
+				new THREE.SphereGeometry( 4, 32, 32 ),
 				new THREE.MeshBasicMaterial( {
 					opacity: 1, 
 					map: this.createGlobeTexture(),
@@ -245,7 +245,7 @@ var Globe = function(container, list) {
 
 		var material = new THREE.LineBasicMaterial({
 			color: 0xCCCCCC,
-			linewidth: 1.5
+			linewidth: 0.5
 		});
 
 		for (var i = 0; i < this.list.length; i++) {
