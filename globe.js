@@ -3,9 +3,9 @@ var Globe = function(container, list) {
 	this.camera = null;
 	this.glRenderer = null;
 	this.cssScene = null;
+	this.glScene = null;
 	this.globeGroup = null;
 	this.nodeGroup = null;
-	this.glScene = null;
 	this.cssRenderer = null;
 	this.particleGroup = [];
 
@@ -216,8 +216,7 @@ var Globe = function(container, list) {
 		shadow.name = 'Globe Shadow';
 		shadow.position.y = - (this.globeRadius + 50);
 		shadow.rotation.x = - Math.PI / 1.6;
-		this.globeGroup.add( shadow );
-		console.log(shadow);
+		this.glScene.add( shadow );
 
 		for (var i = 0; i < mesh.geometry.vertices.length; i++) {
 			var coor = mesh.geometry.vertices[i];
@@ -642,7 +641,7 @@ var Globe = function(container, list) {
 		var object = scene.getObjectByName(name);
 		if (object)
 			scene.remove(object);
-	
+
 	}
 
 }
