@@ -11,10 +11,13 @@ var Globe = function(container, list) {
 
 	this.container = document.getElementById(container);
 
+	this.WINDOW_WIDTH = this.container.clientWidth;
+	this.WINDOW_HEIGHT = this.container.clientHeight;
+
 	this.mouseX = 0;
 	this.mouseY = 0;
-	this.windowHalfX = window.innerWidth / 2;
-	this.windowHalfY = window.innerHeight / 2;
+	this.windowHalfX = this.WINDOW_WIDTH / 2;
+	this.windowHalfY = this.WINDOW_HEIGHT / 2;
 	this.globeRadius = 200;
 
 	this.raycaster = new THREE.Raycaster();
@@ -28,7 +31,7 @@ var Globe = function(container, list) {
 	this.init = function() {
 
 		// create camera object
-		this.camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+		this.camera = new THREE.PerspectiveCamera( 70, this.WINDOW_WIDTH / this.WINDOW_HEIGHT, 1, 1000 );
 
 		// set camera perspective
 		this.camera.position.z = 500;
@@ -56,7 +59,7 @@ var Globe = function(container, list) {
 		this.glRenderer.domElement.addEventListener('mousemove', this.handleHoverParticle.bind(this), false);
 
 		// by window
-		window.addEventListener( 'click', this.onWindowClick.bind(this) );
+		window.addEventListener( 'mousemove', this.onWindowClick.bind(this) );
 		window.addEventListener( 'resize', this.onWindowResize.bind(this) );
 
 		this.addStuff();
@@ -104,7 +107,7 @@ var Globe = function(container, list) {
 		var glRenderer = new THREE.WebGLRenderer({alpha:true, antialias: true});
 		glRenderer.setClearColor(0xffffff);
 		glRenderer.setPixelRatio(window.devicePixelRatio);
-		glRenderer.setSize(window.innerWidth, window.innerHeight);
+		glRenderer.setSize(this.WINDOW_WIDTH, this.WINDOW_HEIGHT);
 		glRenderer.domElement.style.position = 'absolute';
 		glRenderer.domElement.style.zIndex = 1;
 		glRenderer.domElement.style.top = 0;
@@ -116,7 +119,7 @@ var Globe = function(container, list) {
 	this.createCssRenderer = function() {
 
 		var cssRenderer = new THREE.CSS3DRenderer();
-		cssRenderer.setSize(window.innerWidth, window.innerHeight);
+		cssRenderer.setSize(this.WINDOW_WIDTH, this.WINDOW_HEIGHT);
 		cssRenderer.domElement.style.position = 'absolute';
 		this.glRenderer.domElement.style.zIndex = 0;
 		cssRenderer.domElement.style.top = 0;
@@ -439,26 +442,21 @@ var Globe = function(container, list) {
 
 	this.onWindowResize = function() {
 
-		this.camera.aspect = window.innerWidth / window.innerHeight;
+		this.WINDOW_WIDTH = this.container.clientWidth;
+		this.WINDOW_HEIGHT = this.container.clientHeight;
+
+		this.camera.aspect = this.WINDOW_WIDTH / this.WINDOW_HEIGHT;
 		this.camera.updateProjectionMatrix();
 
-		this.glRenderer.setSize( window.innerWidth, window.innerHeight );
-		this.cssRenderer.setSize( window.innerWidth, window.innerHeight );
+		this.glRenderer.setSize( this.WINDOW_WIDTH, this.WINDOW_HEIGHT );
+		this.cssRenderer.setSize( this.WINDOW_WIDTH, this.WINDOW_HEIGHT );
 
 	}
 
 	this.onWindowClick = function(e) {
 
-		var self = this;
-
-		self.mouseX = ( e.clientX - self.windowHalfX );
-		self.mouseY = ( e.clientY - self.windowHalfY );
-
-		new TWEEN.Tween( self.globeGroup.rotation ).to( {
-			x: ( self.mouseY ) / 100,
-			y: - ( self.mouseX ) / 100 
-		}, 2000 )
-		.easing( TWEEN.Easing.Elastic.Out).start();
+		this.mouseX = ( e.clientX - this.windowHalfX );
+		this.mouseY = ( e.clientY - this.windowHalfY );
 
 	}
 
@@ -474,7 +472,8 @@ var Globe = function(container, list) {
 
 	this.render = function() {
 
-		TWEEN.update();
+		this.globeGroup.rotation.x = -( this.mouseY ) * 0.008;
+		this.globeGroup.rotation.y = -( this.mouseX ) * 0.008;
 
 		this.glRenderer.render( this.glScene, this.camera );
 		this.cssRenderer.render( this.cssScene, this.camera );
@@ -528,8 +527,8 @@ var Globe = function(container, list) {
 		var raycaster = this.raycaster,
 			mouse = this.mouse;
 
-		mouse.x = 2 * (e.clientX / window.innerWidth) - 1;
-		mouse.y = -2 * (e.clientY / window.innerHeight) + 1;
+		mouse.x = 2 * (e.clientX / this.WINDOW_WIDTH) - 1;
+		mouse.y = -2 * (e.clientY / this.WINDOW_HEIGHT) + 1;
 		mouse.z = 1;
 
 		raycaster.setFromCamera(mouse, this.camera);
@@ -593,8 +592,8 @@ var Globe = function(container, list) {
 			mouse = this.mouse,
 			sphereRadius = 128;
 
-		mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-		mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
+		mouse.x = (e.clientX / this.WINDOW_WIDTH) * 2 - 1;
+		mouse.y = - (e.clientY / this.WINDOW_HEIGHT) * 2 + 1;
 		raycaster.setFromCamera(this.mouse, this.camera);
 
 		var intersects = raycaster.intersectObjects(this.particleGroup);
