@@ -285,9 +285,9 @@ var Globe = function(container, list) {
 							listType,
 							currentNode.size );
 						if (listType == 'left')
-							currentNode.text.position.set(currentNode.x - currentNode.text.geometry.parameters.width/2, currentNode.y, 0);
+							currentNode.text.position.set(currentNode.x, currentNode.y, 0);
 						else 
-							currentNode.text.position.set(currentNode.x + currentNode.text.geometry.parameters.width/2, currentNode.y, 0);
+							currentNode.text.position.set(currentNode.x, currentNode.y, 0);
 
 						group.add(currentNode.particle);
 						group.add(currentNode.text);
@@ -304,7 +304,7 @@ var Globe = function(container, list) {
 
 	}
 
-	this.drawText = function( text, sizeParticle, align ) {
+	/* this.drawText = function( text, sizeParticle, align ) {
 
 		var canvas = document.createElement('canvas');
 		var ctx = canvas.getContext('2d');
@@ -333,8 +333,8 @@ var Globe = function(container, list) {
 		canvas.height = h;
 
 		// fill the canvas
-		// ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
-		// ctx.fillRect(0,0,w,h);	
+		ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
+		ctx.fillRect(0,0,w,h);	
 
 		var x,
 			y = h/2 + fontSize/2;
@@ -367,6 +367,42 @@ var Globe = function(container, list) {
 		);
 		
 		return sprite;
+
+	} */
+
+	this.drawText = function( text, sizeParticle, align ) {
+
+		var group = new THREE.Group();
+
+		var text = text.split('\n');
+		var fontSize = 18;
+		var fontFamily = 'Arial';
+		var textAlign = (align == 'right') ? THREE_Text.textAlign.left: THREE_Text.textAlign.right;
+
+		for (var i = 0; i < text.length; i++) {
+			var sprite = new THREE_Text.Text2D(text[i].toUpperCase(), { 
+				align: textAlign,
+				font: fontSize + 'px ' + fontFamily,
+				fillStyle: '#808080',
+				antialias: false 
+			});
+
+			if (align == 'right')
+				sprite.position.setX(sizeParticle);
+			else
+				sprite.position.setX(-sizeParticle);
+
+			group.add(sprite);
+		}
+
+		if (group.children.length > 1) {
+			for (var i = 0; i < group.children.length; i++) {
+				group.children[i].position.setY(fontSize * (-i + 1));
+			}
+		} else
+			group.children[0].position.setY(fontSize / 2);
+
+		return group;
 
 	}
 
@@ -470,9 +506,9 @@ var Globe = function(container, list) {
 
 				if (currentNode.text) {
 					if (listType == 'right')
-						currentNode.text.position.set(currentNode.x + currentNode.text.geometry.parameters.width/2, currentNode.y, 0);
+						currentNode.text.position.set(currentNode.x, currentNode.y, 0);
 					else 
-						currentNode.text.position.set(currentNode.x - currentNode.text.geometry.parameters.width/2, currentNode.y, 0);
+						currentNode.text.position.set(currentNode.x, currentNode.y, 0);
 				}
 
 				if (currentNode.x + currentNode.dx > currentNode.maxWidth || currentNode.x + currentNode.dx < currentNode.minWidth)
@@ -601,16 +637,17 @@ var Globe = function(container, list) {
 			var overlay = new THREE.CSS3DObject( div );
 
 			overlay.name = 'Overlay';
-			overlay.position.set(0, 0, this.globeRadius);
+			overlay.position.set(0, 0, 0);
 
 			var mesh = new THREE.Mesh(
-				new THREE.CircleGeometry(this.globeRadius/1.9, 100), 
+				new THREE.CircleGeometry(this.globeRadius, 100), 
 				new THREE.MeshBasicMaterial({
 					color: 0x808080,
 					opacity: 0.7,
 					side: THREE.DoubleSide
 				})
 			);
+			mesh.scale.set(0.5, 0.5, 0.5);
 			mesh.position.set(0, 0, this.globeRadius);
 			mesh.name = 'Info text';
 
