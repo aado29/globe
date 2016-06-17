@@ -639,7 +639,7 @@ var Globe = function(container, list) {
 			overlay.position.set(0, 0, 0);
 
 			var mesh = new THREE.Mesh(
-				new THREE.CircleGeometry(this.globeRadius, 100), 
+				new THREE.CircleGeometry(this.globeRadius * 1.04, 100), 
 				new THREE.MeshBasicMaterial({
 					color: 0x808080,
 					opacity: 0.7,
