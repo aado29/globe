@@ -30,40 +30,57 @@ var Globe = function(container, list) {
 
 	this.init = function() {
 
+		var _this = this;
+
 		// create camera object
-		this.camera = new THREE.PerspectiveCamera( 70, this.WINDOW_WIDTH / this.WINDOW_HEIGHT, 1, 1000 );
+		_this.camera = new THREE.PerspectiveCamera( 70, _this.WINDOW_WIDTH / _this.WINDOW_HEIGHT, 1, 1000 );
 
 		// set camera perspective
-		this.camera.position.z = 500;
+		_this.camera.position.z = 500;
 
 		// create GlRenderer and CssRenderer
-		this.glRenderer = this.createGlRenderer();
-		this.cssRenderer = this.createCssRenderer();
+		_this.glRenderer = _this.createGlRenderer();
+		_this.cssRenderer = _this.createCssRenderer();
 
 		// render components in selected container from constructor
-		this.container.appendChild(this.cssRenderer.domElement);
-		this.cssRenderer.domElement.appendChild(this.glRenderer.domElement);
+		_this.container.appendChild(_this.cssRenderer.domElement);
+		_this.cssRenderer.domElement.appendChild(_this.glRenderer.domElement);
 
 		// create the scenes to show
-		this.glScene = new THREE.Scene();
-		this.cssScene = new THREE.Scene();
+		_this.glScene = new THREE.Scene();
+		_this.cssScene = new THREE.Scene();
 
 		// set light for the GlRenderer
-		var light = this.createLight()
-		this.glScene.add( light );
+		var light = _this.createLight()
+		_this.glScene.add( light );
 
 		// add events in the DOM
 
 		// by particle
-		this.glRenderer.domElement.addEventListener('click', this.handleClickParticle.bind(this), false);
-		this.glRenderer.domElement.addEventListener('mousemove', this.handleHoverParticle.bind(this), false);
+		_this.glRenderer.domElement.addEventListener('click', _this.handleClickParticle.bind(_this), false);
+		_this.glRenderer.domElement.addEventListener('mousemove', _this.handleHoverParticle.bind(_this), false);
 
 		// by window
-		window.addEventListener( 'mousemove', this.onWindowClick.bind(this) );
-		window.addEventListener( 'resize', this.onWindowResize.bind(this) );
+		window.addEventListener( 'mousemove', _this.onWindowClick.bind(_this) );
+		window.addEventListener( 'resize', _this.onWindowResize.bind(_this) );
 
-		this.addStuff();
-		this.render();
+		_this.addStuff();
+		_this.render();
+		var pg = _this.particleGroup;
+
+		// AQUI TITILAN LOS PUNTOS
+
+		var tit = setInterval(function() {
+			for (var i = 0; i < pg.length; i++) {
+				var _this = pg[i];
+				if (_this.geometry.colorActive === false || _this.geometry.colorActive === null ) {
+					if (_this.material.color.b == 0.8 && _this.material.color.g == 0.8 && _this.material.color.r == 0.8) 
+						_this.material.color.set(new THREE.Color('#3399CC'));
+					else
+						_this.material.color.set(new THREE.Color('#CCCCCC'));
+				}
+			}
+		}, 1000);
 
 	}
 
@@ -279,7 +296,7 @@ var Globe = function(container, list) {
 							currentNode.size);
 
 						this.particleGroup.push(currentNode.particle);
-						currentNode.particle.geometry.colorActive = false;
+						currentNode.particle.geometry.colorActive = null;
 
 						currentNode.text = this.createItemList(
 							{x: currentNode.x, y: currentNode.y, z: 0},
@@ -306,72 +323,6 @@ var Globe = function(container, list) {
 		}
 
 	}
-
-	/* this.drawText = function( text, sizeParticle, align ) {
-
-		var canvas = document.createElement('canvas');
-		var ctx = canvas.getContext('2d');
-		var fontSize = 20;
-		var font = fontSize + "px Arial";
-
-		var maxWidth = 1;
-
-		var arrMessage = text.split('\n');
-
-		for (var i = 0; i < arrMessage.length; i++) {
-			ctx.font = font;
-			var txt = arrMessage[i];
-			var cw = ctx.measureText(txt).width;
-			maxWidth = ( cw > maxWidth) ? cw : maxWidth;
-		}
-
-		var margin = 20,
-			w = maxWidth + (fontSize * 4),
-			h = 128;
-
-		if(text.length < 1)
-			var w = 1, h = 1;
-		
-		canvas.width = w;
-		canvas.height = h;
-
-		// fill the canvas
-		ctx.fillStyle = "rgba(204, 204, 204, 0.8)";
-		ctx.fillRect(0,0,w,h);	
-
-		var x,
-			y = h/2 + fontSize/2;
-
-		for (var i = 0; i < arrMessage.length; i++) {
-			ctx.font = font;
-			ctx.fillStyle = "#808080";
-			if (align == 'right') {
-				ctx.textAlign = 'left';
-				x = 0 + fontSize;
-			} else {
-				ctx.textAlign = 'right';
-				x = w - fontSize;
-			}
-			var txt = arrMessage[i].toUpperCase();
-			if (arrMessage.length < 2)
-				ctx.fillText(txt, x, y );
-			else
-				ctx.fillText(txt, x, fontSize * ( i + 1 ) + ( arrMessage.length * fontSize ) );
-
-		}
-		// canvas contents will be used for a texture
-		var texture = new THREE.Texture(canvas);
-		texture.needsUpdate = true;
-		var material = new THREE.MeshBasicMaterial( {map: texture, side:THREE.DoubleSide } );
-		material.transparent = true;
-		var sprite = new THREE.Mesh(
-			new THREE.PlaneGeometry(canvas.width, canvas.height),
-			material
-		);
-		
-		return sprite;
-
-	} */
 
 	this.drawText = function( text, sizeParticle, align ) {
 
@@ -472,8 +423,8 @@ var Globe = function(container, list) {
 
 	this.render = function() {
 
-		this.globeGroup.rotation.x = -( this.mouseY ) * 0.008;
-		this.globeGroup.rotation.y = -( this.mouseX ) * 0.008;
+		this.globeGroup.rotation.x = ( this.mouseY ) * 0.008;
+		this.globeGroup.rotation.y = ( this.mouseX ) * 0.008;
 
 		this.glRenderer.render( this.glScene, this.camera );
 		this.cssRenderer.render( this.cssScene, this.camera );
