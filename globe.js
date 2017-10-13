@@ -157,19 +157,33 @@ var Globe = function(container, list) {
 
 		var self = this;
 		var loader = new THREE.TextureLoader();
-		loader.load('globe.png', function ( image ) {
-			var bg = new THREE.Mesh( 
-				new THREE.PlaneGeometry(self.globeRadius * 2, self.globeRadius * 2),
-				new THREE.MeshBasicMaterial( {
+		loader.setCrossOrigin('');
+		loader.setPath('./');
+		loader.load(
+			'globe.png',
+			function ( image ) {
+				var geometry = new THREE.BoxGeometry(self.globeRadius * 2, self.globeRadius * 2, 1);
+				var material = new THREE.MeshBasicMaterial( {
 					map: image,
 					transparent: true,
 					opacity: 0.5,
-					color: 0xCCCCCC
-				} )
-			);
-			bg.name = 'Background Image';
-			self.glScene.add(bg);
-		} );
+					color: 0xCCCCCC,
+					needsUpdate: true,
+					side: THREE.DoubleSide
+				});
+				var bg = new THREE.Mesh(geometry, material);
+				bg.name = 'Background Image';
+				self.glScene.add(bg);
+			},
+			// Function called when download progresses
+			function ( xhr ) {
+				console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+			},
+			// Function called when download errors
+			function ( xhr ) {
+				console.log( 'An error happened' );
+			}
+		);
 
 	}
 
